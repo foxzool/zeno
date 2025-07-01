@@ -16,6 +16,31 @@ interface AppConfig {
   sync_enabled: boolean
 }
 
+const formatDate = (timestamp: string): string => {
+  try {
+    const date = new Date(parseInt(timestamp) * 1000)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+    
+    if (diffDays === 0) {
+      return '今天'
+    } else if (diffDays === 1) {
+      return '昨天'
+    } else if (diffDays < 7) {
+      return `${diffDays} 天前`
+    } else {
+      return date.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      })
+    }
+  } catch (error) {
+    return '未知时间'
+  }
+}
+
 export default function NotesPage() {
   const [notes, setNotes] = useState<NoteFile[]>([])
   const [loading, setLoading] = useState(true)
@@ -180,7 +205,12 @@ export default function NotesPage() {
               <div className="note-meta">
                 <span>大小: {Math.round(note.size / 1024)} KB</span>
                 {note.modified && (
-                  <span>修改: {new Date(note.modified).toLocaleDateString()}</span>
+                  <span 
+                    title={new Date(parseInt(note.modified) * 1000).toLocaleString('zh-CN')}
+                    style={{ cursor: 'help' }}
+                  >
+                    修改: {formatDate(note.modified)}
+                  </span>
                 )}
               </div>
             </div>
