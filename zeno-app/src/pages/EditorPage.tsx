@@ -123,13 +123,7 @@ fn main() {
       </div>
       
       {error && (
-        <div className="error-message" style={{ 
-          background: '#fee', 
-          color: '#c33', 
-          padding: '1rem', 
-          borderRadius: '0.5rem',
-          marginBottom: '1rem'
-        }}>
+        <div className="error-message">
           {error}
         </div>
       )}

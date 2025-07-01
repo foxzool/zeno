@@ -7,7 +7,7 @@ import Search from '../Search';
 import CreateNoteDialog from '../CreateNoteDialog';
 import ContextMenu, { ContextMenuItem } from '../ContextMenu';
 import { FileNode } from '../FileTree';
-import { Menu, X, PanelLeft, PanelRight, Search as SearchIcon, Edit3, Trash2, Copy, FolderOpen, Info } from 'lucide-react';
+import { Menu, X, PanelLeft, PanelRight, Search as SearchIcon, Edit3, Trash2, Copy, FolderOpen, Info, FolderPlus, FilePlus, Edit } from 'lucide-react';
 import useHotkeys from '../../hooks/useHotkeys';
 
 interface LayoutProps {
@@ -77,14 +77,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [fileTreeData, setFileTreeData] = useState<FileNode[]>(mockFiles);
   const [showCreateFileDialog, setShowCreateFileDialog] = useState(false);
+  const [showCreateFolderDialog, setShowCreateFolderDialog] = useState(false);
+  const [createParentPath, setCreateParentPath] = useState<string>('');
   const [contextMenu, setContextMenu] = useState<{
     isOpen: boolean;
     position: { x: number; y: number };
     file: FileNode | null;
+    type: 'file' | 'folder';
   }>({
     isOpen: false,
     position: { x: 0, y: 0 },
-    file: null
+    file: null,
+    type: 'file'
   });
 
   // 将后端返回的文件树转换为前端的 FileNode 结构
@@ -184,18 +188,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     // TODO: 打开搜索结果文件
   };
 
-  const handleFileCreate = (_parentPath: string) => {
+  const handleFileCreate = (parentPath: string) => {
+    setCreateParentPath(parentPath);
     setShowCreateFileDialog(true);
   };
 
-  const handleFolderCreate = (_parentPath: string) => {
-    // TODO: 实现文件夹创建功能
-    console.log('创建文件夹功能待实现');
+  const handleFolderCreate = (parentPath: string) => {
+    setCreateParentPath(parentPath);
+    setShowCreateFolderDialog(true);
   };
 
   const handleCreateConfirm = async (title: string) => {
     try {
-      const result = await invoke('create_note', { title });
+      const result = await invoke('create_note', { title, parentPath: createParentPath });
       console.log('文件创建成功:', result);
       
       // 重新加载文件树
@@ -205,6 +210,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       navigate(`/editor?file=${encodeURIComponent(result as string)}`);
       
       setShowCreateFileDialog(false);
+      setCreateParentPath('');
     } catch (err) {
       console.error('创建文件失败:', err);
       alert(`创建文件失败: ${err}`);
@@ -213,6 +219,28 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const handleCreateCancel = () => {
     setShowCreateFileDialog(false);
+    setCreateParentPath('');
+  };
+
+  const handleCreateFolderConfirm = async (name: string) => {
+    try {
+      await invoke('create_folder', { name, parentPath: createParentPath });
+      console.log('文件夹创建成功');
+      
+      // 重新加载文件树
+      await loadFileTree();
+      
+      setShowCreateFolderDialog(false);
+      setCreateParentPath('');
+    } catch (err) {
+      console.error('创建文件夹失败:', err);
+      alert(`创建文件夹失败: ${err}`);
+    }
+  };
+
+  const handleCreateFolderCancel = () => {
+    setShowCreateFolderDialog(false);
+    setCreateParentPath('');
   };
 
   const handleFileContextMenu = (file: FileNode, event: React.MouseEvent) => {
@@ -221,7 +249,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     setContextMenu({
       isOpen: true,
       position: { x: event.clientX, y: event.clientY },
-      file
+      file,
+      type: 'file'
+    });
+  };
+
+  const handleFolderContextMenu = (folder: FileNode, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setContextMenu({
+      isOpen: true,
+      position: { x: event.clientX, y: event.clientY },
+      file: folder,
+      type: 'folder'
     });
   };
 
@@ -241,6 +281,53 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       console.error('删除文件失败:', err);
       alert(`删除文件失败: ${err}`);
     }
+  };
+
+  const handleDeleteFolder = async (folder: FileNode) => {
+    if (!window.confirm(`确定要删除文件夹 "${folder.name}" 吗？此操作将删除文件夹及其所有内容，无法撤销。`)) {
+      return;
+    }
+
+    try {
+      await invoke('delete_folder', { folderPath: folder.path });
+      
+      // 重新加载文件树
+      await loadFileTree();
+      
+      console.log('文件夹删除成功');
+    } catch (err) {
+      console.error('删除文件夹失败:', err);
+      alert(`删除文件夹失败: ${err}`);
+    }
+  };
+
+  const handleRenameFolder = async (folder: FileNode) => {
+    const newName = prompt('请输入新的文件夹名称:', folder.name);
+    if (!newName || newName === folder.name) {
+      return;
+    }
+
+    try {
+      await invoke('rename_folder', { oldPath: folder.path, newName });
+      
+      // 重新加载文件树
+      await loadFileTree();
+      
+      console.log('文件夹重命名成功');
+    } catch (err) {
+      console.error('重命名文件夹失败:', err);
+      alert(`重命名文件夹失败: ${err}`);
+    }
+  };
+
+  const handleCreateFileInFolder = (folder: FileNode) => {
+    setCreateParentPath(folder.path);
+    setShowCreateFileDialog(true);
+  };
+
+  const handleCreateFolderInFolder = (folder: FileNode) => {
+    setCreateParentPath(folder.path);
+    setShowCreateFolderDialog(true);
   };
 
   const handleCopyFilePath = (file: FileNode) => {
@@ -304,6 +391,76 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       label: '删除',
       icon: <Trash2 size={14} />,
       onClick: () => handleDeleteFile(file),
+      danger: true
+    }
+  ];
+
+  const getFolderContextMenuItems = (folder: FileNode): ContextMenuItem[] => [
+    {
+      id: 'createFile',
+      label: '新建文件',
+      icon: <FilePlus size={14} />,
+      onClick: () => handleCreateFileInFolder(folder)
+    },
+    {
+      id: 'createFolder',
+      label: '新建文件夹',
+      icon: <FolderPlus size={14} />,
+      onClick: () => handleCreateFolderInFolder(folder)
+    },
+    {
+      id: 'separator1',
+      label: '',
+      separator: true,
+      onClick: () => {}
+    },
+    {
+      id: 'rename',
+      label: '重命名',
+      icon: <Edit size={14} />,
+      onClick: () => handleRenameFolder(folder)
+    },
+    {
+      id: 'separator2',
+      label: '',
+      separator: true,
+      onClick: () => {}
+    },
+    {
+      id: 'showInFolder',
+      label: '在文件夹中显示',
+      icon: <FolderOpen size={14} />,
+      onClick: async () => {
+        try {
+          await invoke('show_in_folder', { filePath: folder.path });
+        } catch (err) {
+          console.error('打开文件夹失败:', err);
+        }
+      }
+    },
+    {
+      id: 'copyPath',
+      label: '复制路径',
+      icon: <Copy size={14} />,
+      onClick: () => handleCopyFilePath(folder)
+    },
+    {
+      id: 'info',
+      label: '属性',
+      icon: <Info size={14} />,
+      onClick: () => handleShowFileInfo(folder)
+    },
+    {
+      id: 'separator3',
+      label: '',
+      separator: true,
+      onClick: () => {}
+    },
+    {
+      id: 'delete',
+      label: '删除文件夹',
+      icon: <Trash2 size={14} />,
+      onClick: () => handleDeleteFolder(folder),
       danger: true
     }
   ];
@@ -381,6 +538,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 onFileCreate={handleFileCreate}
                 onFolderCreate={handleFolderCreate}
                 onFileContextMenu={handleFileContextMenu}
+                onFolderContextMenu={handleFolderContextMenu}
               />
             </div>
           </div>
@@ -429,11 +587,26 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         onConfirm={handleCreateConfirm}
       />
 
+      {/* 创建文件夹对话框 */}
+      <CreateNoteDialog
+        isOpen={showCreateFolderDialog}
+        onClose={handleCreateFolderCancel}
+        onConfirm={handleCreateFolderConfirm}
+        title="创建新文件夹"
+        placeholder="请输入文件夹名称"
+        confirmText="创建"
+      />
+
       {/* 右键菜单 */}
       <ContextMenu
         isOpen={contextMenu.isOpen}
         position={contextMenu.position}
-        items={contextMenu.file ? getFileContextMenuItems(contextMenu.file) : []}
+        items={contextMenu.file ? 
+          (contextMenu.type === 'folder' ? 
+            getFolderContextMenuItems(contextMenu.file) : 
+            getFileContextMenuItems(contextMenu.file)
+          ) : []
+        }
         onClose={() => setContextMenu(prev => ({ ...prev, isOpen: false }))}
       />
       

@@ -72,9 +72,10 @@ export const Editor: React.FC<EditorProps> = ({
           display: flex;
           flex-direction: column;
           height: 100%;
-          border: 1px solid #e2e8f0;
+          border: 1px solid var(--border-primary, #e2e8f0);
           border-radius: 8px;
           overflow: hidden;
+          background: var(--bg-primary, white);
         }
         
         .editor-toolbar {
@@ -82,8 +83,8 @@ export const Editor: React.FC<EditorProps> = ({
           justify-content: space-between;
           align-items: center;
           padding: 8px 16px;
-          background: #f8fafc;
-          border-bottom: 1px solid #e2e8f0;
+          background: var(--bg-secondary, #f8fafc);
+          border-bottom: 1px solid var(--border-primary, #e2e8f0);
         }
         
         .editor-actions {
@@ -93,25 +94,25 @@ export const Editor: React.FC<EditorProps> = ({
         }
         
         .dirty-indicator {
-          color: #f59e0b;
+          color: var(--warning, #f59e0b);
           font-size: 18px;
           line-height: 1;
         }
         
         .save-button {
           padding: 4px 12px;
-          border: 1px solid #d1d5db;
+          border: 1px solid var(--border-secondary, #d1d5db);
           border-radius: 4px;
-          background: white;
-          color: #374151;
+          background: var(--bg-primary, white);
+          color: var(--text-primary, #374151);
           font-size: 12px;
           cursor: pointer;
           transition: all 0.2s;
         }
         
         .save-button:hover:not(:disabled) {
-          background: #f3f4f6;
-          border-color: #9ca3af;
+          background: var(--bg-tertiary, #f3f4f6);
+          border-color: var(--text-secondary, #9ca3af);
         }
         
         .save-button:disabled {
@@ -128,44 +129,15 @@ export const Editor: React.FC<EditorProps> = ({
           font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
           font-size: 14px;
           line-height: 1.6;
-          background: white;
+          background: var(--bg-primary, white);
+          color: var(--text-primary, #1e293b);
           min-height: 200px;
         }
         
         .editor-textarea:focus {
-          background: #fefefe;
+          background: var(--bg-primary, #fefefe);
         }
         
-        @media (prefers-color-scheme: dark) {
-          .editor-container {
-            border-color: #374151;
-          }
-          
-          .editor-toolbar {
-            background: #1f2937;
-            border-bottom-color: #374151;
-          }
-          
-          .save-button {
-            background: #374151;
-            border-color: #6b7280;
-            color: #f9fafb;
-          }
-          
-          .save-button:hover:not(:disabled) {
-            background: #4b5563;
-            border-color: #9ca3af;
-          }
-          
-          .editor-textarea {
-            background: #111827;
-            color: #f9fafb;
-          }
-          
-          .editor-textarea:focus {
-            background: #0f172a;
-          }
-        }
       `}</style>
     </div>
   );

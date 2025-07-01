@@ -9,7 +9,7 @@ import './index.css';
 
 function App() {
   return (
-    <ThemeProvider>
+    <ThemeProvider defaultTheme="auto">
       <HashRouter>
         <Layout>
           <Routes>

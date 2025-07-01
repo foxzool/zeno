@@ -5,13 +5,19 @@ interface CreateNoteDialogProps {
   onClose: () => void;
   onConfirm: (title: string) => void;
   defaultTitle?: string;
+  title?: string;
+  placeholder?: string;
+  confirmText?: string;
 }
 
 const CreateNoteDialog: React.FC<CreateNoteDialogProps> = ({
   isOpen,
   onClose,
   onConfirm,
-  defaultTitle = '新建笔记'
+  defaultTitle = '新建笔记',
+  title: dialogTitle = '新建笔记',
+  placeholder = '请输入笔记标题',
+  confirmText = '创建'
 }) => {
   const [title, setTitle] = useState(defaultTitle);
 
@@ -66,12 +72,12 @@ const CreateNoteDialog: React.FC<CreateNoteDialogProps> = ({
         minWidth: '400px',
         boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
       }}>
-        <h3 style={{ marginBottom: '1rem' }}>新建笔记</h3>
+        <h3 style={{ marginBottom: '1rem' }}>{dialogTitle}</h3>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="请输入笔记标题"
+          placeholder={placeholder}
           style={{
             width: '100%',
             padding: '0.5rem',
@@ -95,7 +101,7 @@ const CreateNoteDialog: React.FC<CreateNoteDialogProps> = ({
             disabled={!title.trim()}
             className="btn-primary"
           >
-            创建
+            {confirmText}
           </button>
         </div>
       </div>

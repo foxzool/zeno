@@ -160,32 +160,6 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
           margin: 4px 0;
         }
 
-        @media (prefers-color-scheme: dark) {
-          .context-menu {
-            background: #1f2937;
-            border-color: #374151;
-          }
-
-          .context-menu-item {
-            color: #f9fafb;
-          }
-
-          .context-menu-item:hover:not(.disabled) {
-            background-color: #374151;
-          }
-
-          .context-menu-item.danger {
-            color: #f87171;
-          }
-
-          .context-menu-item.danger:hover:not(.disabled) {
-            background-color: #450a0a;
-          }
-
-          .context-menu-separator {
-            background-color: #4b5563;
-          }
-        }
       `}</style>
     </div>
   );

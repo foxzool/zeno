@@ -12,8 +12,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #ffffff;
-  color: #333333;
+  background-color: var(--bg-primary, #ffffff);
+  color: var(--text-primary, #333333);
 }
 
 code {
@@ -63,45 +63,50 @@ code {
 
 /* 按钮样式 */
 .btn-primary {
-  background-color: #007bff;
-  color: white;
+  background-color: var(--accent-primary, #007bff);
+  color: var(--bg-primary, white);
   border: none;
   border-radius: 0.375rem;
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
-  background-color: #0056b3;
+  background-color: var(--accent-secondary, #0056b3);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md, 0 4px 6px rgba(0, 0, 0, 0.1)), 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .btn-primary:disabled {
-  background-color: #6c757d;
+  background-color: var(--text-tertiary, #6c757d);
   cursor: not-allowed;
   opacity: 0.6;
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-secondary {
-  background-color: #6c757d;
-  color: white;
-  border: none;
+  background-color: var(--bg-tertiary, #6c757d);
+  color: var(--text-primary, white);
+  border: 1px solid var(--border-primary, transparent);
   border-radius: 0.375rem;
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .btn-secondary:hover {
-  background-color: #5a6268;
+  background-color: var(--text-secondary, #5a6268);
+  border-color: var(--border-secondary, #9ca3af);
 }
 
 .btn-secondary:disabled {
-  background-color: #adb5bd;
+  background-color: var(--text-tertiary, #adb5bd);
   cursor: not-allowed;
   opacity: 0.6;
 }
@@ -112,7 +117,7 @@ code {
   align-items: center;
   justify-content: center;
   height: 200px;
-  color: #6c757d;
+  color: var(--text-secondary, #6c757d);
   font-size: 1rem;
 }
 
@@ -120,8 +125,8 @@ code {
 .error-message {
   display: flex;
   align-items: center;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
+  background-color: var(--error-bg, #fef2f2);
+  border: 1px solid var(--error-border, #fecaca);
   border-radius: 0.375rem;
   padding: 1rem;
   margin: 1rem 0;
@@ -130,26 +135,28 @@ code {
 .error-message .icon {
   margin-right: 0.75rem;
   font-size: 1.25rem;
+  color: var(--error, #ef4444);
 }
 
 .error-message h3 {
   margin: 0 0 0.25rem 0;
   font-size: 1rem;
   font-weight: 600;
+  color: var(--text-primary, #1f2937);
 }
 
 .error-message p {
   margin: 0;
   font-size: 0.875rem;
-  color: #721c24;
+  color: var(--error-text, #7f1d1d);
 }
 
 /* 空状态 */
 .empty-state {
   text-align: center;
   padding: 3rem 0;
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
+  background-color: var(--bg-secondary, #f8f9fa);
+  border: 1px solid var(--border-primary, #e9ecef);
   border-radius: 0.5rem;
   margin: 1rem 0;
 }
@@ -158,16 +165,18 @@ code {
   font-size: 3.75rem;
   margin-bottom: 1rem;
   display: block;
+  opacity: 0.6;
 }
 
 .empty-state h3 {
   font-size: 1.25rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
+  color: var(--text-primary, #1f2937);
 }
 
 .empty-state p {
-  color: #6c757d;
+  color: var(--text-secondary, #6c757d);
   font-size: 0.875rem;
 }
 
@@ -180,28 +189,31 @@ code {
 }
 
 .note-card {
-  background-color: #ffffff;
-  border: 1px solid #e9ecef;
+  background-color: var(--bg-primary, #ffffff);
+  border: 1px solid var(--border-primary, #e9ecef);
   border-radius: 0.5rem;
   padding: 1rem;
-  transition: box-shadow 0.2s;
+  transition: all 0.2s ease;
   cursor: pointer;
 }
 
 .note-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: var(--bg-tertiary, #f8f9fa);
+  box-shadow: var(--shadow-md, 0 4px 6px rgba(0, 0, 0, 0.1));
+  border-color: var(--border-secondary, #d1d5db);
+  transform: translateY(-2px);
 }
 
 .note-title {
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
-  color: #333;
+  color: var(--text-primary, #333);
 }
 
 .note-meta {
   font-size: 0.75rem;
-  color: #6c757d;
+  color: var(--text-secondary, #6c757d);
   display: flex;
   gap: 1rem;
 }

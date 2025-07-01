@@ -129,7 +129,7 @@ async fn collect_notes_iterative(dir: &Path, notes: &mut Vec<NoteFile>) -> Resul
 }
 
 #[tauri::command]
-pub async fn create_note(title: Option<String>) -> Result<String, String> {
+pub async fn create_note(title: Option<String>, parent_path: Option<String>) -> Result<String, String> {
     // 从配置获取工作空间路径
     let config = crate::commands::get_config().await?;
     let workspace_path = config.workspace_path
@@ -140,9 +140,29 @@ pub async fn create_note(title: Option<String>) -> Result<String, String> {
         return Err(format!("工作空间不存在: {}", workspace.display()));
     }
     
+    // 确定目标目录
+    let target_dir = if let Some(parent) = parent_path {
+        if parent.is_empty() {
+            workspace.to_path_buf()
+        } else {
+            let parent_path = Path::new(&parent);
+            if parent_path.is_absolute() {
+                parent_path.to_path_buf()
+            } else {
+                workspace.join(parent_path)
+            }
+        }
+    } else {
+        workspace.to_path_buf()
+    };
+    
+    if !target_dir.exists() {
+        return Err(format!("目标目录不存在: {}", target_dir.display()));
+    }
+    
     let title = title.unwrap_or_else(|| "新建笔记".to_string());
     let filename = format!("{}.md", slugify(&title));
-    let file_path = workspace.join(&filename);
+    let file_path = target_dir.join(&filename);
     
     // 确保文件名唯一
     let mut counter = 1;
@@ -150,7 +170,7 @@ pub async fn create_note(title: Option<String>) -> Result<String, String> {
     while final_path.exists() {
         let stem = Path::new(&filename).file_stem().unwrap().to_str().unwrap();
         let new_filename = format!("{}-{}.md", stem, counter);
-        final_path = workspace.join(new_filename);
+        final_path = target_dir.join(new_filename);
         counter += 1;
     }
     
@@ -348,6 +368,119 @@ pub async fn show_in_folder(file_path: String) -> Result<(), String> {
     }
     
     Ok(())
+}
+
+#[tauri::command]
+pub async fn create_folder(name: String, parent_path: Option<String>) -> Result<(), String> {
+    // 从配置获取工作空间路径
+    let config = crate::commands::get_config().await?;
+    let workspace_path = config.workspace_path
+        .ok_or("未设置工作空间路径")?;
+    
+    let workspace = Path::new(&workspace_path);
+    if !workspace.exists() {
+        return Err(format!("工作空间不存在: {}", workspace.display()));
+    }
+    
+    // 确定目标目录
+    let target_dir = if let Some(parent) = parent_path {
+        if parent.is_empty() {
+            workspace.to_path_buf()
+        } else {
+            let parent_path = Path::new(&parent);
+            if parent_path.is_absolute() {
+                parent_path.to_path_buf()
+            } else {
+                workspace.join(parent_path)
+            }
+        }
+    } else {
+        workspace.to_path_buf()
+    };
+    
+    if !target_dir.exists() {
+        return Err(format!("目标目录不存在: {}", target_dir.display()));
+    }
+    
+    let folder_name = slugify(&name);
+    let folder_path = target_dir.join(&folder_name);
+    
+    // 确保文件夹名唯一
+    let mut counter = 1;
+    let mut final_path = folder_path.clone();
+    while final_path.exists() {
+        let new_folder_name = format!("{}-{}", folder_name, counter);
+        final_path = target_dir.join(new_folder_name);
+        counter += 1;
+    }
+    
+    fs::create_dir(&final_path)
+        .await
+        .map_err(|e| format!("创建文件夹失败: {}", e))?;
+    
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn delete_folder(folder_path: String) -> Result<(), String> {
+    let path = Path::new(&folder_path);
+    
+    if !path.exists() {
+        return Err(format!("文件夹不存在: {}", path.display()));
+    }
+    
+    if !path.is_dir() {
+        return Err(format!("路径不是文件夹: {}", path.display()));
+    }
+    
+    // 确保是在工作空间内
+    let config = crate::commands::get_config().await?;
+    let workspace_path = config.workspace_path
+        .ok_or("未设置工作空间路径")?;
+    let workspace = Path::new(&workspace_path);
+    
+    if !path.starts_with(workspace) {
+        return Err(format!("只能删除工作空间内的文件夹"));
+    }
+    
+    fs::remove_dir_all(path)
+        .await
+        .map_err(|e| format!("删除文件夹失败: {}", e))
+}
+
+#[tauri::command]
+pub async fn rename_folder(old_path: String, new_name: String) -> Result<(), String> {
+    let old = Path::new(&old_path);
+    
+    if !old.exists() {
+        return Err(format!("文件夹不存在: {}", old.display()));
+    }
+    
+    if !old.is_dir() {
+        return Err(format!("路径不是文件夹: {}", old.display()));
+    }
+    
+    // 确保是在工作空间内
+    let config = crate::commands::get_config().await?;
+    let workspace_path = config.workspace_path
+        .ok_or("未设置工作空间路径")?;
+    let workspace = Path::new(&workspace_path);
+    
+    if !old.starts_with(workspace) {
+        return Err(format!("只能重命名工作空间内的文件夹"));
+    }
+    
+    let parent = old.parent().ok_or("无法获取父目录")?;
+    let new_folder_name = slugify(&new_name);
+    let new_path = parent.join(&new_folder_name);
+    
+    if new_path.exists() {
+        return Err(format!("目标文件夹已存在: {}", new_path.display()));
+    }
+    
+    tokio::fs::rename(old, &new_path)
+        .await
+        .map_err(|e| format!("重命名文件夹失败: {}", e))
 }
 
 #[tauri::command]
