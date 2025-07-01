@@ -50,48 +50,96 @@ export default function NotesPage() {
   const [error, setError] = useState<string | null>(null)
   const [workspacePath, setWorkspacePath] = useState<string | null>(null)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [lastRefreshTime, setLastRefreshTime] = useState(0)
 
-  useEffect(() => {
-    const loadWorkspaceAndNotes = async () => {
-      try {
-        // 首先读取配置获取工作空间路径
-        const config = await invoke<AppConfig>('get_config')
-        
-        if (!config.workspace_path) {
-          setError('未设置工作空间路径。请前往设置页面配置笔记目录。')
-          setLoading(false)
-          return
-        }
+  // 防抖刷新函数
+  const debouncedRefresh = async () => {
+    const now = Date.now()
+    // 如果距离上次刷新不到5秒，则跳过
+    if (now - lastRefreshTime < 5000) {
+      return
+    }
+    setLastRefreshTime(now)
+    await refreshNotes()
+  }
 
-        setWorkspacePath(config.workspace_path)
-
-        // 验证工作空间路径是否有效
-        const isValid = await invoke<boolean>('validate_workspace_path', { 
-          path: config.workspace_path 
-        })
-
-        if (!isValid) {
-          setError(`工作空间路径无效: ${config.workspace_path}。请检查目录是否存在且有权限访问。`)
-          setLoading(false)
-          return
-        }
-
-        // 加载笔记列表
-        const notesList = await invoke<NoteFile[]>('list_notes', { 
-          dirPath: config.workspace_path 
-        })
-        setNotes(notesList)
-        setError(null)
-      } catch (err) {
-        console.error('加载笔记失败:', err)
-        setError('无法加载笔记目录，请检查配置和路径是否正确。')
-      } finally {
+  // 加载工作空间和笔记数据
+  const loadWorkspaceAndNotes = async () => {
+    try {
+      // 首先读取配置获取工作空间路径
+      const config = await invoke<AppConfig>('get_config')
+      
+      if (!config.workspace_path) {
+        setError('未设置工作空间路径。请前往设置页面配置笔记目录。')
         setLoading(false)
+        return
+      }
+
+      setWorkspacePath(config.workspace_path)
+
+      // 验证工作空间路径是否有效
+      const isValid = await invoke<boolean>('validate_workspace_path', { 
+        path: config.workspace_path 
+      })
+
+      if (!isValid) {
+        setError(`工作空间路径无效: ${config.workspace_path}。请检查目录是否存在且有权限访问。`)
+        setLoading(false)
+        return
+      }
+
+      // 加载笔记列表
+      const notesList = await invoke<NoteFile[]>('list_notes', { 
+        dirPath: config.workspace_path 
+      })
+      setNotes(notesList)
+      setError(null)
+    } catch (err) {
+      console.error('加载笔记失败:', err)
+      setError('无法加载笔记目录，请检查配置和路径是否正确。')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 初始加载
+  useEffect(() => {
+    loadWorkspaceAndNotes()
+  }, [])
+
+  // 实时刷新：定时器每30秒刷新一次
+  useEffect(() => {
+    if (!workspacePath) return
+
+    const interval = setInterval(() => {
+      debouncedRefresh()
+    }, 30000) // 30秒
+
+    return () => clearInterval(interval)
+  }, [workspacePath, lastRefreshTime])
+
+  // 实时刷新：页面获得焦点时刷新
+  useEffect(() => {
+    const handleFocus = () => {
+      if (workspacePath && !loading) {
+        debouncedRefresh()
       }
     }
 
-    loadWorkspaceAndNotes()
-  }, [])
+    const handleVisibilityChange = () => {
+      if (!document.hidden && workspacePath && !loading) {
+        debouncedRefresh()
+      }
+    }
+
+    window.addEventListener('focus', handleFocus)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    return () => {
+      window.removeEventListener('focus', handleFocus)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [workspacePath, loading, lastRefreshTime])
 
   const createWorkspace = async () => {
     if (!workspacePath) return
@@ -188,16 +236,6 @@ export default function NotesPage() {
       <div className="page-header">
         <h1>笔记管理</h1>
         <div>
-          {workspacePath && (
-            <button 
-              className="btn-secondary" 
-              onClick={refreshNotes}
-              style={{ marginRight: '0.5rem' }}
-              disabled={loading}
-            >
-              {loading ? '刷新中...' : '🔄 刷新'}
-            </button>
-          )}
           <button 
             className="btn-primary"
             onClick={createNewNote}

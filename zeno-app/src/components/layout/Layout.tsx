@@ -121,6 +121,34 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     loadFileTree();
   }, []);
 
+  // 实时刷新文件树：定时器每30秒刷新一次
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadFileTree();
+    }, 30000); // 30秒
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // 实时刷新文件树：页面获得焦点时刷新
+  useEffect(() => {
+    const handleFocus = () => {
+      loadFileTree();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        loadFileTree();
+      }
+    });
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
+  }, []);
+
   // 响应式设计：小屏幕时隐藏侧边栏
   useEffect(() => {
     const handleResize = () => {
