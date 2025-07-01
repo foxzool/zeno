@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { useNavigate } from 'react-router-dom'
+import CreateNoteDialog from '../components/CreateNoteDialog'
 
 interface NoteFile {
   path: string
@@ -48,8 +49,7 @@ export default function NotesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [workspacePath, setWorkspacePath] = useState<string | null>(null)
-  const [showInputDialog, setShowInputDialog] = useState(false)
-  const [inputValue, setInputValue] = useState('')
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
 
   useEffect(() => {
     const loadWorkspaceAndNotes = async () => {
@@ -140,30 +140,23 @@ export default function NotesPage() {
       return
     }
 
-    // 显示输入对话框
-    setInputValue('新建笔记')
-    setShowInputDialog(true)
+    setShowCreateDialog(true)
   }
 
-  const handleCreateNote = async () => {
-    const title = inputValue.trim()
-    if (!title) return
-
+  const handleCreateConfirm = async (title: string) => {
     try {
       setLoading(true)
-      setShowInputDialog(false)
-      const args = { 
-        'title': title
-      }
-      console.log('Creating note with args:', args)
-      console.log('Args keys:', Object.keys(args))
+      setShowCreateDialog(false)
       
-      const result = await invoke('create_note', args)
-      
+      const result = await invoke('create_note', { title })
       console.log('Note created:', result)
       
       // 创建成功后刷新笔记列表
       await refreshNotes()
+      
+      // 导航到新创建的笔记
+      navigate(`/editor?file=${encodeURIComponent(result as string)}`)
+      
       console.log('Note created successfully!')
     } catch (err) {
       console.error('创建笔记失败:', err)
@@ -173,9 +166,8 @@ export default function NotesPage() {
     }
   }
 
-  const handleCancelInput = () => {
-    setShowInputDialog(false)
-    setInputValue('')
+  const handleCreateCancel = () => {
+    setShowCreateDialog(false)
   }
 
   const handleNoteClick = (note: NoteFile) => {
@@ -285,68 +277,12 @@ export default function NotesPage() {
         </div>
       )}
 
-      {/* 输入对话框 */}
-      {showInputDialog && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            padding: '2rem',
-            borderRadius: '0.5rem',
-            minWidth: '400px',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
-          }}>
-            <h3 style={{ marginBottom: '1rem' }}>新建笔记</h3>
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="请输入笔记标题"
-              style={{
-                width: '100%',
-                padding: '0.5rem',
-                border: '1px solid #ddd',
-                borderRadius: '0.25rem',
-                marginBottom: '1rem',
-                fontSize: '1rem'
-              }}
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleCreateNote()
-                } else if (e.key === 'Escape') {
-                  handleCancelInput()
-                }
-              }}
-            />
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-              <button
-                className="btn-secondary"
-                onClick={handleCancelInput}
-              >
-                取消
-              </button>
-              <button
-                className="btn-primary"
-                onClick={handleCreateNote}
-                disabled={!inputValue.trim()}
-              >
-                创建
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 创建笔记对话框 */}
+      <CreateNoteDialog
+        isOpen={showCreateDialog}
+        onClose={handleCreateCancel}
+        onConfirm={handleCreateConfirm}
+      />
     </div>
   )
 }

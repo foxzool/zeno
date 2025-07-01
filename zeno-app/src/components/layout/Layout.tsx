@@ -4,6 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 import Sidebar from './Sidebar';
 import FileTree from '../FileTree';
 import Search from '../Search';
+import CreateNoteDialog from '../CreateNoteDialog';
 import { FileNode } from '../FileTree';
 import { Menu, X, PanelLeft, PanelRight, Search as SearchIcon } from 'lucide-react';
 import useHotkeys from '../../hooks/useHotkeys';
@@ -80,6 +81,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [selectedFile, setSelectedFile] = useState<string>();
   const [searchOpen, setSearchOpen] = useState(false);
   const [fileTreeData, setFileTreeData] = useState<FileNode[]>(mockFiles);
+  const [showCreateFileDialog, setShowCreateFileDialog] = useState(false);
 
   // 将笔记列表转换为文件树结构
   const buildFileTree = (notes: NoteFile[]): FileNode[] => {
@@ -93,29 +95,29 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   // 加载真实的文件数据
-  useEffect(() => {
-    const loadFileTree = async () => {
-      try {
-        const config = await invoke<{ workspace_path: string | null }>('get_config');
-        
-        if (!config.workspace_path) {
-          return; // 如果没有设置工作空间，使用默认数据
-        }
-
-        const notes = await invoke<NoteFile[]>('list_notes', { 
-          dirPath: config.workspace_path 
-        });
-
-        if (notes.length > 0) {
-          const treeData = buildFileTree(notes);
-          setFileTreeData(treeData);
-        }
-      } catch (err) {
-        console.error('加载文件树失败:', err);
-        // 发生错误时继续使用默认数据
+  const loadFileTree = async () => {
+    try {
+      const config = await invoke<{ workspace_path: string | null }>('get_config');
+      
+      if (!config.workspace_path) {
+        return; // 如果没有设置工作空间，使用默认数据
       }
-    };
 
+      const notes = await invoke<NoteFile[]>('list_notes', { 
+        dirPath: config.workspace_path 
+      });
+
+      if (notes.length > 0) {
+        const treeData = buildFileTree(notes);
+        setFileTreeData(treeData);
+      }
+    } catch (err) {
+      console.error('加载文件树失败:', err);
+      // 发生错误时继续使用默认数据
+    }
+  };
+
+  useEffect(() => {
     loadFileTree();
   }, []);
 
@@ -146,6 +148,37 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const handleSearchSelect = (result: any) => {
     console.log('Selected search result:', result);
     // TODO: 打开搜索结果文件
+  };
+
+  const handleFileCreate = (_parentPath: string) => {
+    setShowCreateFileDialog(true);
+  };
+
+  const handleFolderCreate = (_parentPath: string) => {
+    // TODO: 实现文件夹创建功能
+    console.log('创建文件夹功能待实现');
+  };
+
+  const handleCreateConfirm = async (title: string) => {
+    try {
+      const result = await invoke('create_note', { title });
+      console.log('文件创建成功:', result);
+      
+      // 重新加载文件树
+      await loadFileTree();
+      
+      // 导航到新创建的文件
+      navigate(`/editor?file=${encodeURIComponent(result as string)}`);
+      
+      setShowCreateFileDialog(false);
+    } catch (err) {
+      console.error('创建文件失败:', err);
+      alert(`创建文件失败: ${err}`);
+    }
+  };
+
+  const handleCreateCancel = () => {
+    setShowCreateFileDialog(false);
   };
 
   // 设置快捷键
@@ -218,6 +251,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 files={fileTreeData}
                 selectedFile={selectedFile}
                 onFileSelect={handleFileSelect}
+                onFileCreate={handleFileCreate}
+                onFolderCreate={handleFolderCreate}
               />
             </div>
           </div>
@@ -257,6 +292,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         isOpen={searchOpen}
         onClose={() => setSearchOpen(false)}
         onSelect={handleSearchSelect}
+      />
+
+      {/* 创建文件对话框 */}
+      <CreateNoteDialog
+        isOpen={showCreateFileDialog}
+        onClose={handleCreateCancel}
+        onConfirm={handleCreateConfirm}
       />
       
       <style>{`
