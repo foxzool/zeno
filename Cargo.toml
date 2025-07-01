@@ -1,0 +1,60 @@
+[workspace]
+members = [
+    "zeno-core",
+    "zeno-app/src-tauri",
+    "zeno-cli",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Zeno Team"]
+license = "MIT"
+repository = "https://github.com/zeno-team/zeno"
+homepage = "https://github.com/zeno-team/zeno"
+
+[workspace.dependencies]
+# Async runtime
+tokio = { version = "1.40", features = ["full"] }
+futures = "0.3"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+
+# Date and time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "sqlite", "chrono", "uuid"] }
+diesel = { version = "2.2", features = ["sqlite", "chrono"] }
+
+# File system
+walkdir = "2.5"
+notify = "6.1"
+
+# Markdown processing
+pulldown-cmark = "0.12"
+markdown = "1.0"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Utils
+uuid = { version = "1.10", features = ["v4", "serde"] }
+sha2 = "0.10"
+base64 = "0.22"
+
+# CLI
+clap = { version = "4.5", features = ["derive"] }
+
+# Tauri
+tauri = { version = "2.1", features = [] }
+tauri-build = { version = "2.0", features = [] }

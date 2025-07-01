@@ -1,0 +1,49 @@
+[package]
+name = "zeno-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Zeno 核心库 - 提供笔记解析、索引和发布功能"
+
+[dependencies]
+# Async
+tokio = { workspace = true }
+futures = { workspace = true }
+async-trait = "0.1"
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+serde_yaml = "0.9"
+toml = { workspace = true }
+
+# Date and time
+chrono = { workspace = true }
+
+# Database
+sqlx = { workspace = true }
+
+# File system
+walkdir = { workspace = true }
+notify = { workspace = true }
+
+# Markdown processing
+pulldown-cmark = { workspace = true }
+
+# Error handling
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+
+# Logging
+tracing = { workspace = true }
+
+# Utils
+uuid = { workspace = true }
+sha2 = { workspace = true }
+
+[dev-dependencies]
+tokio-test = "0.4"
+tempfile = "3.8"

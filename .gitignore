@@ -1,0 +1,239 @@
+# ============================================================================
+# Rust 项目
+# ============================================================================
+
+# Cargo 构建输出
+/target/
+**/target/
+Cargo.lock
+
+# Rust 备份文件
+**/*.rs.bk
+
+# Rust 调试信息
+*.pdb
+
+# RLS / rust-analyzer
+.rls/
+rust-project.json
+
+# ============================================================================
+# Node.js / 前端项目
+# ============================================================================
+
+# 依赖目录
+node_modules/
+.pnpm-store/
+
+# 包管理器缓存
+.npm
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# 调试日志
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+
+# 构建输出
+dist/
+dist-ssr/
+build/
+.next/
+out/
+.nuxt/
+.cache/
+.parcel-cache/
+
+# 测试覆盖率
+coverage/
+*.lcov
+.nyc_output
+
+# TypeScript 类型缓存
+*.tsbuildinfo
+
+# ============================================================================
+# Tauri 特定
+# ============================================================================
+
+# Tauri 构建输出
+src-tauri/target/
+**/src-tauri/target/
+
+# Tauri 生成的文件
+src-tauri/gen/
+**/src-tauri/gen/
+
+# Tauri 图标缓存
+src-tauri/icons/.ico
+src-tauri/icons/.png
+
+# WiX 工具链
+*.wixobj
+*.wixpdb
+
+# macOS 应用包
+*.app/
+*.dmg
+
+# Windows 安装包
+*.msi
+*.exe
+
+# Linux AppImage
+*.AppImage
+
+# ============================================================================
+# 数据库和数据文件
+# ============================================================================
+
+# SQLite 数据库
+*.db
+*.sqlite
+*.sqlite3
+*.db-*
+
+# 数据库备份
+*.backup
+*.bak
+
+# 用户数据目录
+.zeno/
+user-data/
+
+# ============================================================================
+# 开发工具和临时文件
+# ============================================================================
+
+# 编辑器配置
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+!.vscode/settings.json.example
+.idea/
+*.swp
+*.swo
+*~
+.vim/
+
+# 操作系统生成的文件
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# 临时文件
+*.tmp
+*.temp
+*.cache
+.temp/
+.tmp/
+
+# 日志文件
+*.log
+logs/
+*.log.*
+
+# 环境变量文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# ============================================================================
+# 开发和测试工具
+# ============================================================================
+
+# Jest 测试
+.jest/
+
+# Cypress 测试
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+
+# Playwright 测试
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Storybook
+storybook-static/
+
+# 性能测试
+.lighthouseci/
+lighthouse-results/
+
+# 代码覆盖率
+coverage/
+.nyc_output/
+
+# 基准测试
+benchmarks/results/
+
+# ============================================================================
+# 打包和分发
+# ============================================================================
+
+# 压缩包
+*.tgz
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# 发布文件
+releases/
+dist-packages/
+
+# npm 包
+*.tgz
+package/
+
+# ============================================================================
+# 文档生成
+# ============================================================================
+
+# 生成的文档
+docs/api/
+docs/generated/
+book/
+mdbook-output/
+
+# ============================================================================
+# 其他
+# ============================================================================
+
+# 本地配置
+local.config.json
+.local/
+
+# 备份文件
+*.backup
+*~.backup
+
+# 补丁文件
+*.patch
+*.diff
+
+# 密钥文件
+*.pem
+*.key
+*.p12
+*.pfx
+
+# 调试符号
+*.dsym/
