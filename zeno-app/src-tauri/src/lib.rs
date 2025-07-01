@@ -15,6 +15,9 @@ pub fn run() {
             commands::parse_markdown,
             commands::get_config,
             commands::save_config,
+            commands::select_workspace_directory,
+            commands::create_workspace_directory,
+            commands::validate_workspace_path,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
