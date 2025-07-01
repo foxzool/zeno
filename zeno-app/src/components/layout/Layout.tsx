@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { invoke } from '@tauri-apps/api/core';
 import Sidebar from './Sidebar';
 import FileTree from '../FileTree';
 import Search from '../Search';
@@ -8,6 +10,13 @@ import useHotkeys from '../../hooks/useHotkeys';
 
 interface LayoutProps {
   children: React.ReactNode;
+}
+
+interface NoteFile {
+  path: string;
+  name: string;
+  size: number;
+  modified: string | null;
 }
 
 // 模拟文件数据
@@ -63,12 +72,52 @@ const mockFiles: FileNode[] = [
 ];
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const navigate = useNavigate();
   const [leftPanelVisible, setLeftPanelVisible] = useState(true);
   const [rightPanelVisible, setRightPanelVisible] = useState(true);
   const [leftPanelWidth] = useState(280);
   const [rightPanelWidth] = useState(320);
   const [selectedFile, setSelectedFile] = useState<string>();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [fileTreeData, setFileTreeData] = useState<FileNode[]>(mockFiles);
+
+  // 将笔记列表转换为文件树结构
+  const buildFileTree = (notes: NoteFile[]): FileNode[] => {
+    // 简化版本：只创建一个平面列表，让用户可以直接点击文件
+    return notes.map((note) => ({
+      id: note.path,
+      name: note.name,
+      path: note.path,
+      type: 'file' as const
+    }));
+  };
+
+  // 加载真实的文件数据
+  useEffect(() => {
+    const loadFileTree = async () => {
+      try {
+        const config = await invoke<{ workspace_path: string | null }>('get_config');
+        
+        if (!config.workspace_path) {
+          return; // 如果没有设置工作空间，使用默认数据
+        }
+
+        const notes = await invoke<NoteFile[]>('list_notes', { 
+          dirPath: config.workspace_path 
+        });
+
+        if (notes.length > 0) {
+          const treeData = buildFileTree(notes);
+          setFileTreeData(treeData);
+        }
+      } catch (err) {
+        console.error('加载文件树失败:', err);
+        // 发生错误时继续使用默认数据
+      }
+    };
+
+    loadFileTree();
+  }, []);
 
   // 响应式设计：小屏幕时隐藏侧边栏
   useEffect(() => {
@@ -87,7 +136,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const handleFileSelect = (file: FileNode) => {
     setSelectedFile(file.id);
-    // TODO: 加载文件内容到编辑器
+    // 只有当文件是 Markdown 文件时才导航到编辑器
+    if (file.type === 'file' && (file.path.endsWith('.md') || file.path.endsWith('.markdown'))) {
+      navigate(`/editor?file=${encodeURIComponent(file.path)}`);
+    }
     console.log('Selected file:', file);
   };
 
@@ -163,7 +215,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
             <div className="filetree-section">
               <FileTree
-                files={mockFiles}
+                files={fileTreeData}
                 selectedFile={selectedFile}
                 onFileSelect={handleFileSelect}
               />

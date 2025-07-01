@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { invoke } from '@tauri-apps/api/core'
+import { useNavigate } from 'react-router-dom'
 
 interface NoteFile {
   path: string
@@ -42,6 +43,7 @@ const formatDate = (timestamp: string): string => {
 }
 
 export default function NotesPage() {
+  const navigate = useNavigate()
   const [notes, setNotes] = useState<NoteFile[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -176,6 +178,11 @@ export default function NotesPage() {
     setInputValue('')
   }
 
+  const handleNoteClick = (note: NoteFile) => {
+    // 导航到编辑器页面，传递文件路径作为参数
+    navigate(`/editor?file=${encodeURIComponent(note.path)}`)
+  }
+
   if (loading) {
     return (
       <div className="page-container">
@@ -255,7 +262,12 @@ export default function NotesPage() {
       ) : (
         <div className="notes-grid">
           {notes.map((note) => (
-            <div key={note.path} className="note-card">
+            <div 
+              key={note.path} 
+              className="note-card"
+              onClick={() => handleNoteClick(note)}
+              style={{ cursor: 'pointer' }}
+            >
               <h3 className="note-title">{note.name}</h3>
               <div className="note-meta">
                 <span>大小: {Math.round(note.size / 1024)} KB</span>
