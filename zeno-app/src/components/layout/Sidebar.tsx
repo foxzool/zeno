@@ -3,15 +3,15 @@ import { NavLink } from 'react-router-dom'
 const navigation = [
   { name: '首页', href: '/', icon: '🏠' },
   { name: '笔记', href: '/notes', icon: '📝' },
+  { name: '编辑器', href: '/editor', icon: '✏️' },
   { name: '设置', href: '/settings', icon: '⚙️' },
 ]
 
 export default function Sidebar() {
   return (
     <div style={{ 
-      width: '256px', 
       backgroundColor: '#f8f9fa', 
-      borderRight: '1px solid #e9ecef',
+      borderBottom: '1px solid #e9ecef',
       padding: '1rem'
     }}>
       <div style={{ marginBottom: '2rem' }}>
