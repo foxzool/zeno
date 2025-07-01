@@ -14,12 +14,6 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-interface NoteFile {
-  path: string;
-  name: string;
-  size: number;
-  modified: string | null;
-}
 
 // 模拟文件数据
 const mockFiles: FileNode[] = [
@@ -93,14 +87,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     file: null
   });
 
-  // 将笔记列表转换为文件树结构
-  const buildFileTree = (notes: NoteFile[]): FileNode[] => {
-    // 简化版本：只创建一个平面列表，让用户可以直接点击文件
-    return notes.map((note) => ({
-      id: note.path,
-      name: note.name,
-      path: note.path,
-      type: 'file' as const
+  // 将后端返回的文件树转换为前端的 FileNode 结构
+  const convertFileTreeNodes = (backendNodes: any[]): FileNode[] => {
+    return backendNodes.map((node) => ({
+      id: node.id,
+      name: node.name,
+      path: node.path,
+      type: node.type as 'file' | 'directory',
+      children: node.children ? convertFileTreeNodes(node.children) : undefined
     }));
   };
 
@@ -113,13 +107,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         return; // 如果没有设置工作空间，使用默认数据
       }
 
-      const notes = await invoke<NoteFile[]>('list_notes', { 
+      const fileTreeNodes = await invoke<any[]>('get_file_tree', { 
         dirPath: config.workspace_path 
       });
 
-      if (notes.length > 0) {
-        const treeData = buildFileTree(notes);
+      if (fileTreeNodes.length > 0) {
+        const treeData = convertFileTreeNodes(fileTreeNodes);
         setFileTreeData(treeData);
+      } else {
+        setFileTreeData([]); // 如果没有文件，显示空树
       }
     } catch (err) {
       console.error('加载文件树失败:', err);
