@@ -11,6 +11,17 @@ pub struct NoteFile {
     pub modified: Option<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FileTreeNode {
+    pub id: String,
+    pub name: String,
+    pub path: String,
+    pub r#type: String, // "file" or "directory"
+    pub children: Option<Vec<FileTreeNode>>,
+    pub size: Option<u64>,
+    pub modified: Option<String>,
+}
+
 #[tauri::command]
 pub async fn read_file_content(path: String) -> Result<String, String> {
     let path = Path::new(&path);
@@ -174,6 +185,101 @@ fn slugify(text: &str) -> String {
         .filter(|s| !s.is_empty())
         .collect::<Vec<_>>()
         .join("-")
+}
+
+#[tauri::command]
+pub async fn get_file_tree(dir_path: String) -> Result<Vec<FileTreeNode>, String> {
+    let dir = Path::new(&dir_path);
+    if !dir.exists() {
+        return Err(format!("目录不存在: {}", dir.display()));
+    }
+    
+    if !dir.is_dir() {
+        return Err(format!("路径不是目录: {}", dir.display()));
+    }
+    
+    build_file_tree_recursive(dir).await
+}
+
+async fn build_file_tree_recursive(base_dir: &Path) -> Result<Vec<FileTreeNode>, String> {
+    // 递归构建文件树
+    fn build_tree_sync(dir: &Path) -> Result<Vec<FileTreeNode>, String> {
+        let mut children = Vec::new();
+        
+        let entries = std::fs::read_dir(dir)
+            .map_err(|e| format!("读取目录失败 {}: {}", dir.display(), e))?;
+        
+        for entry in entries {
+            let entry = entry.map_err(|e| format!("遍历目录失败: {}", e))?;
+            let path = entry.path();
+            let name = path.file_name()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .to_string();
+            
+            // 跳过隐藏文件和目录
+            if name.starts_with('.') {
+                continue;
+            }
+            
+            let path_str = path.to_string_lossy().to_string();
+            
+            if path.is_dir() {
+                // 递归处理子目录
+                let sub_children = build_tree_sync(&path)?;
+                
+                let node = FileTreeNode {
+                    id: path_str.clone(),
+                    name,
+                    path: path_str.clone(),
+                    r#type: "directory".to_string(),
+                    children: Some(sub_children),
+                    size: None,
+                    modified: None,
+                };
+                children.push(node);
+            } else if path.is_file() {
+                // 只包含 Markdown 文件
+                if let Some(ext) = path.extension() {
+                    if ext == "md" || ext == "markdown" {
+                        let metadata = entry.metadata()
+                            .map_err(|e| format!("获取文件元数据失败: {}", e))?;
+                        
+                        let modified = metadata.modified()
+                            .ok()
+                            .and_then(|time| time.duration_since(std::time::UNIX_EPOCH).ok())
+                            .map(|duration| duration.as_secs().to_string());
+                        
+                        let node = FileTreeNode {
+                            id: path_str.clone(),
+                            name,
+                            path: path_str.clone(),
+                            r#type: "file".to_string(),
+                            children: None,
+                            size: Some(metadata.len()),
+                            modified,
+                        };
+                        children.push(node);
+                    }
+                }
+            }
+        }
+        
+        // 排序：目录在前，文件在后，每组内按名称排序
+        children.sort_by(|a, b| {
+            match (a.r#type.as_str(), b.r#type.as_str()) {
+                ("directory", "file") => std::cmp::Ordering::Less,
+                ("file", "directory") => std::cmp::Ordering::Greater,
+                _ => a.name.cmp(&b.name),
+            }
+        });
+        
+        Ok(children)
+    }
+    
+    // 从根目录开始构建树
+    let root_children = build_tree_sync(base_dir)?;
+    Ok(root_children)
 }
 
 #[tauri::command]

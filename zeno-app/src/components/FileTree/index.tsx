@@ -148,25 +148,6 @@ const FileItem: React.FC<FileItemProps> = ({
           white-space: nowrap;
         }
         
-        @media (prefers-color-scheme: dark) {
-          .file-item:hover {
-            background-color: #374151;
-          }
-          
-          .file-item.selected {
-            background-color: #1e40af;
-            color: #dbeafe;
-          }
-          
-          .file-icon,
-          .expand-icon {
-            color: #9ca3af;
-          }
-          
-          .file-item.directory .file-icon {
-            color: #60a5fa;
-          }
-        }
       `}</style>
     </div>
   );
@@ -348,41 +329,6 @@ export const FileTree: React.FC<FileTreeProps> = ({
           font-size: 13px;
         }
         
-        @media (prefers-color-scheme: dark) {
-          .file-tree {
-            background: #1f2937;
-            border-right-color: #374151;
-          }
-          
-          .file-tree-header {
-            background: #111827;
-            border-bottom-color: #374151;
-          }
-          
-          .search-input {
-            background: #374151;
-            border-color: #4b5563;
-            color: #f9fafb;
-          }
-          
-          .search-input:focus {
-            border-color: #60a5fa;
-            box-shadow: 0 0 0 1px #60a5fa;
-          }
-          
-          .toolbar-button {
-            color: #9ca3af;
-          }
-          
-          .toolbar-button:hover {
-            background: #374151;
-            color: #f3f4f6;
-          }
-          
-          .empty-state {
-            color: #9ca3af;
-          }
-        }
       `}</style>
     </div>
   );

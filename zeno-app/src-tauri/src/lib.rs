@@ -13,6 +13,7 @@ pub fn run() {
             commands::read_file_content,
             commands::write_file_content,
             commands::list_notes,
+            commands::get_file_tree,
             commands::create_note,
             commands::delete_note,
             commands::show_in_folder,
