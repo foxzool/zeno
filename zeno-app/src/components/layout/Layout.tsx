@@ -5,8 +5,9 @@ import Sidebar from './Sidebar';
 import FileTree from '../FileTree';
 import Search from '../Search';
 import CreateNoteDialog from '../CreateNoteDialog';
+import ContextMenu, { ContextMenuItem } from '../ContextMenu';
 import { FileNode } from '../FileTree';
-import { Menu, X, PanelLeft, PanelRight, Search as SearchIcon } from 'lucide-react';
+import { Menu, X, PanelLeft, PanelRight, Search as SearchIcon, FileText, Edit3, Trash2, Copy, FolderOpen, Info } from 'lucide-react';
 import useHotkeys from '../../hooks/useHotkeys';
 
 interface LayoutProps {
@@ -82,6 +83,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [fileTreeData, setFileTreeData] = useState<FileNode[]>(mockFiles);
   const [showCreateFileDialog, setShowCreateFileDialog] = useState(false);
+  const [contextMenu, setContextMenu] = useState<{
+    isOpen: boolean;
+    position: { x: number; y: number };
+    file: FileNode | null;
+  }>({
+    isOpen: false,
+    position: { x: 0, y: 0 },
+    file: null
+  });
 
   // 将笔记列表转换为文件树结构
   const buildFileTree = (notes: NoteFile[]): FileNode[] => {
@@ -209,6 +219,105 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     setShowCreateFileDialog(false);
   };
 
+  const handleFileContextMenu = (file: FileNode, event: React.MouseEvent) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setContextMenu({
+      isOpen: true,
+      position: { x: event.clientX, y: event.clientY },
+      file
+    });
+  };
+
+  const handleDeleteFile = async (file: FileNode) => {
+    if (!window.confirm(`确定要删除文件 "${file.name}" 吗？此操作无法撤销。`)) {
+      return;
+    }
+
+    try {
+      await invoke('delete_note', { filePath: file.path });
+      
+      // 重新加载文件树
+      await loadFileTree();
+      
+      console.log('文件删除成功');
+    } catch (err) {
+      console.error('删除文件失败:', err);
+      alert(`删除文件失败: ${err}`);
+    }
+  };
+
+  const handleCopyFilePath = (file: FileNode) => {
+    navigator.clipboard.writeText(file.path).then(() => {
+      console.log('路径已复制到剪贴板');
+    }).catch(err => {
+      console.error('复制路径失败:', err);
+    });
+  };
+
+  const handleShowFileInfo = (file: FileNode) => {
+    const info = `文件名: ${file.name}\n路径: ${file.path}\n类型: ${file.type === 'file' ? '文件' : '目录'}`;
+    alert(info);
+  };
+
+  const getFileContextMenuItems = (file: FileNode): ContextMenuItem[] => [
+    {
+      id: 'open',
+      label: '打开',
+      icon: <FileText size={14} />,
+      onClick: () => handleFileSelect(file)
+    },
+    {
+      id: 'edit',
+      label: '编辑',
+      icon: <Edit3 size={14} />,
+      onClick: () => handleFileSelect(file)
+    },
+    {
+      id: 'separator1',
+      label: '',
+      separator: true,
+      onClick: () => {}
+    },
+    {
+      id: 'showInFolder',
+      label: '在文件夹中显示',
+      icon: <FolderOpen size={14} />,
+      onClick: async () => {
+        try {
+          await invoke('show_in_folder', { filePath: file.path });
+        } catch (err) {
+          console.error('打开文件夹失败:', err);
+        }
+      }
+    },
+    {
+      id: 'copyPath',
+      label: '复制路径',
+      icon: <Copy size={14} />,
+      onClick: () => handleCopyFilePath(file)
+    },
+    {
+      id: 'info',
+      label: '属性',
+      icon: <Info size={14} />,
+      onClick: () => handleShowFileInfo(file)
+    },
+    {
+      id: 'separator2',
+      label: '',
+      separator: true,
+      onClick: () => {}
+    },
+    {
+      id: 'delete',
+      label: '删除',
+      icon: <Trash2 size={14} />,
+      onClick: () => handleDeleteFile(file),
+      danger: true
+    }
+  ];
+
   // 设置快捷键
   useHotkeys([
     {
@@ -281,6 +390,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 onFileSelect={handleFileSelect}
                 onFileCreate={handleFileCreate}
                 onFolderCreate={handleFolderCreate}
+                onFileContextMenu={handleFileContextMenu}
               />
             </div>
           </div>
@@ -327,6 +437,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         isOpen={showCreateFileDialog}
         onClose={handleCreateCancel}
         onConfirm={handleCreateConfirm}
+      />
+
+      {/* 右键菜单 */}
+      <ContextMenu
+        isOpen={contextMenu.isOpen}
+        position={contextMenu.position}
+        items={contextMenu.file ? getFileContextMenuItems(contextMenu.file) : []}
+        onClose={() => setContextMenu(prev => ({ ...prev, isOpen: false }))}
       />
       
       <style>{`

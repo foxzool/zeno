@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { useNavigate } from 'react-router-dom'
 import CreateNoteDialog from '../components/CreateNoteDialog'
+import ContextMenu, { ContextMenuItem } from '../components/ContextMenu'
+import { FileText, Edit3, Trash2, Copy, FolderOpen, Info } from 'lucide-react'
 
 interface NoteFile {
   path: string
@@ -51,6 +53,15 @@ export default function NotesPage() {
   const [workspacePath, setWorkspacePath] = useState<string | null>(null)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [lastRefreshTime, setLastRefreshTime] = useState(0)
+  const [contextMenu, setContextMenu] = useState<{
+    isOpen: boolean;
+    position: { x: number; y: number };
+    note: NoteFile | null;
+  }>({
+    isOpen: false,
+    position: { x: 0, y: 0 },
+    note: null
+  })
 
   // 防抖刷新函数
   const debouncedRefresh = async () => {
@@ -223,6 +234,108 @@ export default function NotesPage() {
     navigate(`/editor?file=${encodeURIComponent(note.path)}`)
   }
 
+  const handleNoteContextMenu = (note: NoteFile, event: React.MouseEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setContextMenu({
+      isOpen: true,
+      position: { x: event.clientX, y: event.clientY },
+      note
+    })
+  }
+
+  const handleDeleteNote = async (note: NoteFile) => {
+    if (!window.confirm(`确定要删除笔记 "${note.name}" 吗？此操作无法撤销。`)) {
+      return
+    }
+
+    try {
+      setLoading(true)
+      await invoke('delete_note', { filePath: note.path })
+      
+      // 刷新笔记列表
+      await refreshNotes()
+      
+      console.log('笔记删除成功')
+    } catch (err) {
+      console.error('删除笔记失败:', err)
+      setError(`删除笔记失败: ${err}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCopyNotePath = (note: NoteFile) => {
+    navigator.clipboard.writeText(note.path).then(() => {
+      console.log('路径已复制到剪贴板')
+    }).catch(err => {
+      console.error('复制路径失败:', err)
+    })
+  }
+
+  const handleShowNoteInfo = (note: NoteFile) => {
+    const info = `文件名: ${note.name}\n路径: ${note.path}\n大小: ${Math.round(note.size / 1024)} KB\n修改时间: ${note.modified ? new Date(parseInt(note.modified) * 1000).toLocaleString('zh-CN') : '未知'}`
+    alert(info)
+  }
+
+  const getContextMenuItems = (note: NoteFile): ContextMenuItem[] => [
+    {
+      id: 'open',
+      label: '打开',
+      icon: <FileText size={14} />,
+      onClick: () => handleNoteClick(note)
+    },
+    {
+      id: 'edit',
+      label: '编辑',
+      icon: <Edit3 size={14} />,
+      onClick: () => handleNoteClick(note)
+    },
+    {
+      id: 'separator1',
+      label: '',
+      separator: true,
+      onClick: () => {}
+    },
+    {
+      id: 'showInFolder',
+      label: '在文件夹中显示',
+      icon: <FolderOpen size={14} />,
+      onClick: async () => {
+        try {
+          await invoke('show_in_folder', { filePath: note.path })
+        } catch (err) {
+          console.error('打开文件夹失败:', err)
+        }
+      }
+    },
+    {
+      id: 'copyPath',
+      label: '复制路径',
+      icon: <Copy size={14} />,
+      onClick: () => handleCopyNotePath(note)
+    },
+    {
+      id: 'info',
+      label: '属性',
+      icon: <Info size={14} />,
+      onClick: () => handleShowNoteInfo(note)
+    },
+    {
+      id: 'separator2',
+      label: '',
+      separator: true,
+      onClick: () => {}
+    },
+    {
+      id: 'delete',
+      label: '删除',
+      icon: <Trash2 size={14} />,
+      onClick: () => handleDeleteNote(note),
+      danger: true
+    }
+  ]
+
   if (loading) {
     return (
       <div className="page-container">
@@ -296,6 +409,7 @@ export default function NotesPage() {
               key={note.path} 
               className="note-card"
               onClick={() => handleNoteClick(note)}
+              onContextMenu={(e) => handleNoteContextMenu(note, e)}
               style={{ cursor: 'pointer' }}
             >
               <h3 className="note-title">{note.name}</h3>
@@ -320,6 +434,14 @@ export default function NotesPage() {
         isOpen={showCreateDialog}
         onClose={handleCreateCancel}
         onConfirm={handleCreateConfirm}
+      />
+
+      {/* 右键菜单 */}
+      <ContextMenu
+        isOpen={contextMenu.isOpen}
+        position={contextMenu.position}
+        items={contextMenu.note ? getContextMenuItems(contextMenu.note) : []}
+        onClose={() => setContextMenu(prev => ({ ...prev, isOpen: false }))}
       />
     </div>
   )

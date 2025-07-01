@@ -14,6 +14,8 @@ pub fn run() {
             commands::write_file_content,
             commands::list_notes,
             commands::create_note,
+            commands::delete_note,
+            commands::show_in_folder,
             commands::parse_markdown,
             commands::get_config,
             commands::save_config,

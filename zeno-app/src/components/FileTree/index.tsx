@@ -26,6 +26,7 @@ interface FileTreeProps {
   onFileSelect: (file: FileNode) => void;
   onFileCreate?: (parentPath: string) => void;
   onFolderCreate?: (parentPath: string) => void;
+  onFileContextMenu?: (file: FileNode, event: React.MouseEvent) => void;
   className?: string;
 }
 
@@ -34,7 +35,7 @@ interface FileItemProps {
   isSelected: boolean;
   onSelect: (node: FileNode) => void;
   onToggle: (nodeId: string) => void;
-  onContextMenu?: (node: FileNode, e: React.MouseEvent) => void;
+  onFileContextMenu?: (node: FileNode, e: React.MouseEvent) => void;
 }
 
 const FileItem: React.FC<FileItemProps> = ({
@@ -42,7 +43,7 @@ const FileItem: React.FC<FileItemProps> = ({
   isSelected,
   onSelect,
   onToggle,
-  onContextMenu
+  onFileContextMenu
 }) => {
   const handleClick = () => {
     if (node.type === 'directory') {
@@ -54,7 +55,9 @@ const FileItem: React.FC<FileItemProps> = ({
 
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
-    onContextMenu?.(node, e);
+    if (node.type === 'file') {
+      onFileContextMenu?.(node, e);
+    }
   };
 
   const paddingLeft = (node.level || 0) * 16 + 8;
@@ -175,6 +178,7 @@ export const FileTree: React.FC<FileTreeProps> = ({
   onFileSelect,
   onFileCreate,
   onFolderCreate,
+  onFileContextMenu,
   className = ''
 }) => {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
@@ -256,6 +260,7 @@ export const FileTree: React.FC<FileTreeProps> = ({
             isSelected={selectedFile === node.id}
             onSelect={onFileSelect}
             onToggle={toggleNode}
+            onFileContextMenu={onFileContextMenu}
           />
         ))}
         

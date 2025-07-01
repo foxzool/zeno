@@ -177,6 +177,74 @@ fn slugify(text: &str) -> String {
 }
 
 #[tauri::command]
+pub async fn delete_note(file_path: String) -> Result<(), String> {
+    let path = Path::new(&file_path);
+    
+    if !path.exists() {
+        return Err(format!("文件不存在: {}", path.display()));
+    }
+    
+    if !path.is_file() {
+        return Err(format!("路径不是文件: {}", path.display()));
+    }
+    
+    // 检查文件扩展名确保只删除 Markdown 文件
+    if let Some(ext) = path.extension() {
+        if ext != "md" && ext != "markdown" {
+            return Err(format!("只能删除 Markdown 文件 (.md, .markdown)"));
+        }
+    } else {
+        return Err(format!("文件没有扩展名"));
+    }
+    
+    fs::remove_file(path)
+        .await
+        .map_err(|e| format!("删除文件失败: {}", e))
+}
+
+#[tauri::command]
+pub async fn show_in_folder(file_path: String) -> Result<(), String> {
+    use std::process::Command;
+    
+    let path = Path::new(&file_path);
+    
+    if !path.exists() {
+        return Err(format!("文件不存在: {}", path.display()));
+    }
+    
+    #[cfg(target_os = "macos")]
+    {
+        Command::new("open")
+            .args(["-R", &file_path])
+            .spawn()
+            .map_err(|e| format!("打开文件夹失败: {}", e))?;
+    }
+    
+    #[cfg(target_os = "windows")]
+    {
+        Command::new("explorer")
+            .args(["/select,", &file_path])
+            .spawn()
+            .map_err(|e| format!("打开文件夹失败: {}", e))?;
+    }
+    
+    #[cfg(target_os = "linux")]
+    {
+        // 尝试使用 xdg-open 打开包含文件的目录
+        if let Some(parent) = path.parent() {
+            Command::new("xdg-open")
+                .arg(parent)
+                .spawn()
+                .map_err(|e| format!("打开文件夹失败: {}", e))?;
+        } else {
+            return Err("无法获取文件的父目录".to_string());
+        }
+    }
+    
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn parse_markdown(content: String, file_path: Option<String>) -> Result<serde_json::Value, String> {
     use zeno_core::parser::MarkdownParser;
     use std::path::PathBuf;
