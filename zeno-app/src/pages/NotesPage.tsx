@@ -46,6 +46,8 @@ export default function NotesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [workspacePath, setWorkspacePath] = useState<string | null>(null)
+  const [showInputDialog, setShowInputDialog] = useState(false)
+  const [inputValue, setInputValue] = useState('')
 
   useEffect(() => {
     const loadWorkspaceAndNotes = async () => {
@@ -128,6 +130,52 @@ export default function NotesPage() {
     }
   }
 
+  const createNewNote = async () => {
+    console.log('createNewNote called!')
+    
+    if (!workspacePath) {
+      console.log('No workspace path set')
+      return
+    }
+
+    // 显示输入对话框
+    setInputValue('新建笔记')
+    setShowInputDialog(true)
+  }
+
+  const handleCreateNote = async () => {
+    const title = inputValue.trim()
+    if (!title) return
+
+    try {
+      setLoading(true)
+      setShowInputDialog(false)
+      const args = { 
+        'title': title
+      }
+      console.log('Creating note with args:', args)
+      console.log('Args keys:', Object.keys(args))
+      
+      const result = await invoke('create_note', args)
+      
+      console.log('Note created:', result)
+      
+      // 创建成功后刷新笔记列表
+      await refreshNotes()
+      console.log('Note created successfully!')
+    } catch (err) {
+      console.error('创建笔记失败:', err)
+      setError(`创建笔记失败: ${err}`)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCancelInput = () => {
+    setShowInputDialog(false)
+    setInputValue('')
+  }
+
   if (loading) {
     return (
       <div className="page-container">
@@ -151,7 +199,14 @@ export default function NotesPage() {
               {loading ? '刷新中...' : '🔄 刷新'}
             </button>
           )}
-          <button className="btn-primary">新建笔记</button>
+          <button 
+            className="btn-primary"
+            onClick={createNewNote}
+            disabled={loading}
+            title={!workspacePath ? "请先设置工作空间路径" : "创建新笔记"}
+          >
+            新建笔记
+          </button>
         </div>
       </div>
       
@@ -215,6 +270,69 @@ export default function NotesPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* 输入对话框 */}
+      {showInputDialog && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '2rem',
+            borderRadius: '0.5rem',
+            minWidth: '400px',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+          }}>
+            <h3 style={{ marginBottom: '1rem' }}>新建笔记</h3>
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="请输入笔记标题"
+              style={{
+                width: '100%',
+                padding: '0.5rem',
+                border: '1px solid #ddd',
+                borderRadius: '0.25rem',
+                marginBottom: '1rem',
+                fontSize: '1rem'
+              }}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleCreateNote()
+                } else if (e.key === 'Escape') {
+                  handleCancelInput()
+                }
+              }}
+            />
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+              <button
+                className="btn-secondary"
+                onClick={handleCancelInput}
+              >
+                取消
+              </button>
+              <button
+                className="btn-primary"
+                onClick={handleCreateNote}
+                disabled={!inputValue.trim()}
+              >
+                创建
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

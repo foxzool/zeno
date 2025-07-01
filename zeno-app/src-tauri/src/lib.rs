@@ -6,12 +6,14 @@ pub mod services;
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             commands::get_app_version,
             commands::get_app_info,
             commands::read_file_content,
             commands::write_file_content,
             commands::list_notes,
+            commands::create_note,
             commands::parse_markdown,
             commands::get_config,
             commands::save_config,

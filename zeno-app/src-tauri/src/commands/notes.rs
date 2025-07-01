@@ -118,6 +118,65 @@ async fn collect_notes_iterative(dir: &Path, notes: &mut Vec<NoteFile>) -> Resul
 }
 
 #[tauri::command]
+pub async fn create_note(title: Option<String>) -> Result<String, String> {
+    // 从配置获取工作空间路径
+    let config = crate::commands::get_config().await?;
+    let workspace_path = config.workspace_path
+        .ok_or("未设置工作空间路径")?;
+    
+    let workspace = Path::new(&workspace_path);
+    if !workspace.exists() {
+        return Err(format!("工作空间不存在: {}", workspace.display()));
+    }
+    
+    let title = title.unwrap_or_else(|| "新建笔记".to_string());
+    let filename = format!("{}.md", slugify(&title));
+    let file_path = workspace.join(&filename);
+    
+    // 确保文件名唯一
+    let mut counter = 1;
+    let mut final_path = file_path.clone();
+    while final_path.exists() {
+        let stem = Path::new(&filename).file_stem().unwrap().to_str().unwrap();
+        let new_filename = format!("{}-{}.md", stem, counter);
+        final_path = workspace.join(new_filename);
+        counter += 1;
+    }
+    
+    let content = format!("# {}\n\n", title);
+    
+    fs::write(&final_path, content)
+        .await
+        .map_err(|e| format!("创建文件失败: {}", e))?;
+    
+    Ok(final_path.to_string_lossy().to_string())
+}
+
+fn slugify(text: &str) -> String {
+    text.trim()
+        .chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() {
+                c
+            } else if c.is_whitespace() || c == '-' || c == '_' {
+                '-'
+            } else {
+                // 保留中文字符
+                if c.is_alphabetic() {
+                    c
+                } else {
+                    '-'
+                }
+            }
+        })
+        .collect::<String>()
+        .split('-')
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<_>>()
+        .join("-")
+}
+
+#[tauri::command]
 pub async fn parse_markdown(content: String, file_path: Option<String>) -> Result<serde_json::Value, String> {
     use zeno_core::parser::MarkdownParser;
     use std::path::PathBuf;

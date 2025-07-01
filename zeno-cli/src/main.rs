@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use anyhow::Result;
 use std::path::PathBuf;
-use zeno_core::{MarkdownParser, LocalStorage, Storage};
+use zeno_core::{MarkdownParser, LocalFileStorage};
 
 #[derive(Parser)]
 #[command(name = "zeno")]
@@ -80,7 +80,7 @@ async fn parse_file(file: PathBuf, format: String) -> Result<()> {
 }
 
 async fn list_files(dir: PathBuf) -> Result<()> {
-    let storage = LocalStorage::new(dir);
+    let storage = LocalFileStorage::new(dir);
     let files = storage.list_markdown_files(&PathBuf::from(".")).await?;
     
     if files.is_empty() {

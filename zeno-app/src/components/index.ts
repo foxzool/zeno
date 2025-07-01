@@ -1,3 +1,7 @@
 // 组件导出索引
 export { default as Layout } from './layout/Layout'
 export { default as Sidebar } from './layout/Sidebar'
+export { default as Editor } from './Editor'
+export { default as FileTree } from './FileTree'
+export { default as ThemeProvider } from './ThemeProvider'
+export { default as Search } from './Search'

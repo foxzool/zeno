@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { useTheme } from '../components/ThemeProvider';
 
 interface AppConfig {
   workspace_path: string | null;
@@ -10,6 +11,7 @@ interface AppConfig {
 }
 
 export default function SettingsPage() {
+  const { theme, setTheme } = useTheme();
   const [config, setConfig] = useState<AppConfig>({
     workspace_path: null,
     theme: 'light',
@@ -244,8 +246,12 @@ export default function SettingsPage() {
                 主题
               </label>
               <select
-                value={config.theme}
-                onChange={(e) => setConfig({ ...config, theme: e.target.value })}
+                value={theme}
+                onChange={(e) => {
+                  const newTheme = e.target.value as 'light' | 'dark' | 'auto';
+                  setTheme(newTheme);
+                  setConfig({ ...config, theme: newTheme });
+                }}
                 style={{
                   width: '100%',
                   padding: '0.5rem 0.75rem',

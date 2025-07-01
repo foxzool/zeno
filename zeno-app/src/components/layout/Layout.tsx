@@ -65,8 +65,8 @@ const mockFiles: FileNode[] = [
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [leftPanelVisible, setLeftPanelVisible] = useState(true);
   const [rightPanelVisible, setRightPanelVisible] = useState(true);
-  const [leftPanelWidth, setLeftPanelWidth] = useState(280);
-  const [rightPanelWidth, setRightPanelWidth] = useState(320);
+  const [leftPanelWidth] = useState(280);
+  const [rightPanelWidth] = useState(320);
   const [selectedFile, setSelectedFile] = useState<string>();
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -207,7 +207,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         onSelect={handleSearchSelect}
       />
       
-      <style jsx>{`
+      <style>{`
         .layout {
           display: flex;
           flex-direction: column;
