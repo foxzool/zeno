@@ -7,7 +7,7 @@ import Search from '../Search';
 import CreateNoteDialog from '../CreateNoteDialog';
 import ContextMenu, { ContextMenuItem } from '../ContextMenu';
 import { FileNode } from '../FileTree';
-import { Menu, X, PanelLeft, PanelRight, Search as SearchIcon, FileText, Edit3, Trash2, Copy, FolderOpen, Info } from 'lucide-react';
+import { Menu, X, PanelLeft, PanelRight, Search as SearchIcon, Edit3, Trash2, Copy, FolderOpen, Info } from 'lucide-react';
 import useHotkeys from '../../hooks/useHotkeys';
 
 interface LayoutProps {
@@ -263,13 +263,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const getFileContextMenuItems = (file: FileNode): ContextMenuItem[] => [
     {
       id: 'open',
-      label: '打开',
-      icon: <FileText size={14} />,
-      onClick: () => handleFileSelect(file)
-    },
-    {
-      id: 'edit',
-      label: '编辑',
+      label: '打开编辑',
       icon: <Edit3 size={14} />,
       onClick: () => handleFileSelect(file)
     },

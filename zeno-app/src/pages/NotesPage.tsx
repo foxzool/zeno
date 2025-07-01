@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { useNavigate } from 'react-router-dom'
 import CreateNoteDialog from '../components/CreateNoteDialog'
 import ContextMenu, { ContextMenuItem } from '../components/ContextMenu'
-import { FileText, Edit3, Trash2, Copy, FolderOpen, Info } from 'lucide-react'
+import { Edit3, Trash2, Copy, FolderOpen, Info } from 'lucide-react'
 
 interface NoteFile {
   path: string
@@ -281,13 +281,7 @@ export default function NotesPage() {
   const getContextMenuItems = (note: NoteFile): ContextMenuItem[] => [
     {
       id: 'open',
-      label: '打开',
-      icon: <FileText size={14} />,
-      onClick: () => handleNoteClick(note)
-    },
-    {
-      id: 'edit',
-      label: '编辑',
+      label: '打开编辑',
       icon: <Edit3 size={14} />,
       onClick: () => handleNoteClick(note)
     },
