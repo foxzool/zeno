@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
-import Editor from '../components/Editor';
+import TyporaEditor from '../components/TyporaEditor';
 
 const EditorPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -129,11 +129,12 @@ fn main() {
       )}
       
       <div className="editor-wrapper">
-        <Editor
+        <TyporaEditor
           content={content}
           onChange={setContent}
           onSave={handleSave}
           className="main-editor"
+          placeholder="开始你的知识记录之旅..."
         />
       </div>
       
