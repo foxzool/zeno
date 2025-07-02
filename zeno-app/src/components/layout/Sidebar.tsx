@@ -4,6 +4,7 @@ const navigation = [
   { name: '首页', href: '/', icon: '🏠' },
   { name: '笔记', href: '/notes', icon: '📝' },
   { name: '编辑器', href: '/editor', icon: '✏️' },
+  { name: '知识图谱', href: '/graph', icon: '🕸️' },
   { name: '设置', href: '/settings', icon: '⚙️' },
 ]
 
