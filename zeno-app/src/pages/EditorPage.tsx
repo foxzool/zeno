@@ -1,14 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
-import TyporaEditor from '../components/TyporaEditor';
+import TyporaEditor, { TyporaEditorRef } from '../components/TyporaEditor';
+import { useEditor } from '../contexts/EditorContext';
 
 const EditorPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const [content, setContent] = useState('');
-  const [currentFile, setCurrentFile] = useState<string | null>(null);
+  const { currentContent, setCurrentContent, currentFile, setCurrentFile, setEditorRef } = useEditor();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const editorRef = useRef<TyporaEditorRef>(null);
+
+  // 将 editorRef 传递给 context
+  useEffect(() => {
+    setEditorRef(editorRef);
+  }, [setEditorRef]);
 
   useEffect(() => {
     const loadFile = async () => {
@@ -16,7 +22,7 @@ const EditorPage: React.FC = () => {
       
       if (!filePath) {
         // 如果没有文件参数，显示默认内容
-        setContent(getDefaultContent());
+        setCurrentContent(getDefaultContent());
         setCurrentFile(null);
         setLoading(false);
         return;
@@ -25,19 +31,28 @@ const EditorPage: React.FC = () => {
       try {
         setCurrentFile(filePath);
         const fileContent = await invoke<string>('read_file_content', { path: filePath });
-        setContent(fileContent);
+        setCurrentContent(fileContent);
         setError(null);
+        
+        // 检查是否需要跳转到指定行
+        const targetLine = searchParams.get('line');
+        if (targetLine && editorRef.current) {
+          // 延迟跳转，确保内容已经渲染
+          setTimeout(() => {
+            editorRef.current?.scrollToLine(parseInt(targetLine, 10));
+          }, 100);
+        }
       } catch (err) {
         console.error('加载文件失败:', err);
         setError(`加载文件失败: ${err}`);
-        setContent(getDefaultContent());
+        setCurrentContent(getDefaultContent());
       } finally {
         setLoading(false);
       }
     };
 
     loadFile();
-  }, [searchParams]);
+  }, [searchParams, editorRef]);
 
   const getDefaultContent = () => {
     return `# 欢迎使用 Zeno 编辑器
@@ -93,7 +108,7 @@ fn main() {
     try {
       await invoke('write_file_content', { 
         path: currentFile, 
-        content: content 
+        content: currentContent 
       });
       console.log('文件保存成功');
       // 可以添加成功提示
@@ -130,8 +145,9 @@ fn main() {
       
       <div className="editor-wrapper">
         <TyporaEditor
-          content={content}
-          onChange={setContent}
+          ref={editorRef}
+          content={currentContent}
+          onChange={setCurrentContent}
           onSave={handleSave}
           className="main-editor"
           placeholder="开始你的知识记录之旅..."

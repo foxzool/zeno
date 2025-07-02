@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import Sidebar from './Sidebar';
 import FileTree from '../FileTree';
 import Search from '../Search';
 import CreateNoteDialog from '../CreateNoteDialog';
 import ContextMenu, { ContextMenuItem } from '../ContextMenu';
+import Outline from '../Outline';
 import { FileNode } from '../FileTree';
+import { useEditor } from '../../contexts/EditorContext';
 import { Menu, X, PanelLeft, PanelRight, Search as SearchIcon, Edit3, Trash2, Copy, FolderOpen, Info, FolderPlus, FilePlus, Edit } from 'lucide-react';
 import useHotkeys from '../../hooks/useHotkeys';
 
@@ -69,6 +71,8 @@ const mockFiles: FileNode[] = [
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { currentContent, editorRef } = useEditor();
   const [leftPanelVisible, setLeftPanelVisible] = useState(true);
   const [rightPanelVisible, setRightPanelVisible] = useState(true);
   const [leftPanelWidth] = useState(280);
@@ -90,6 +94,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     file: null,
     type: 'file'
   });
+
+  // 检查是否在编辑器页面
+  const isEditorPage = location.pathname === '/editor';
+
+  // 处理大纲项目点击
+  const handleOutlineItemClick = useCallback((item: any) => {
+    console.log('大纲项目点击:', item);
+    if (editorRef?.current?.scrollToLine) {
+      editorRef.current.scrollToLine(item.line);
+    }
+  }, [editorRef]);
 
   // 将后端返回的文件树转换为前端的 FileNode 结构
   const convertFileTreeNodes = (backendNodes: any[]): FileNode[] => {
@@ -183,10 +198,32 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     console.log('Selected file:', file);
   };
 
-  const handleSearchSelect = (result: any) => {
+  const handleSearchSelect = useCallback((result: any) => {
     console.log('Selected search result:', result);
-    // TODO: 打开搜索结果文件
-  };
+    
+    // 根据搜索结果类型处理不同的跳转逻辑
+    if (result.type === 'file' && result.path) {
+      // 如果是文件，导航到编辑器
+      navigate(`/editor?file=${encodeURIComponent(result.path)}`);
+    } else if (result.type === 'content' && result.filePath) {
+      // 如果是内容搜索结果，导航到文件并尝试跳转到对应行
+      const params = new URLSearchParams({
+        file: result.filePath
+      });
+      
+      if (result.line) {
+        params.append('line', result.line.toString());
+      }
+      
+      navigate(`/editor?${params.toString()}`);
+    } else if (result.path) {
+      // 默认情况：如果有路径就尝试打开
+      navigate(`/editor?file=${encodeURIComponent(result.path)}`);
+    }
+    
+    // 关闭搜索对话框
+    setSearchOpen(false);
+  }, [navigate]);
 
   const handleFileCreate = (parentPath: string) => {
     setCreateParentPath(parentPath);
@@ -567,7 +604,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </button>
             </div>
             <div className="panel-content">
-              <p className="placeholder-text">文档大纲将在这里显示</p>
+              {isEditorPage ? (
+                <Outline 
+                  content={currentContent} 
+                  onItemClick={handleOutlineItemClick}
+                />
+              ) : (
+                <p className="placeholder-text">在编辑器中打开文档以查看大纲</p>
+              )}
             </div>
           </div>
         )}

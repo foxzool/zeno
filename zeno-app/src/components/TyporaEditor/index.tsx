@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useTheme } from '../ThemeProvider';
 
@@ -10,23 +10,76 @@ export interface TyporaEditorProps {
   placeholder?: string;
 }
 
-const TyporaEditor: React.FC<TyporaEditorProps> = ({
+export interface TyporaEditorRef {
+  scrollToLine: (lineNumber: number) => void;
+}
+
+// 辅助函数：获取标题在内容中的行号
+const getLineNumberForHeading = (content: string, headingText: string): number => {
+  const lines = content.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const match = line.match(/^(#{1,6})\s+(.+)$/);
+    if (match && match[2].trim() === headingText.trim()) {
+      return i + 1;
+    }
+  }
+  return 1;
+};
+
+const TyporaEditor = forwardRef<TyporaEditorRef, TyporaEditorProps>(({
   content,
   onChange,
   onSave,
   className = '',
   placeholder = '开始写作...'
-}) => {
+}, ref) => {
   const { actualTheme } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [localContent, setLocalContent] = useState(content);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const previewRef = useRef<HTMLDivElement>(null);
 
   // 同步外部内容
   useEffect(() => {
     setLocalContent(content);
   }, [content]);
+
+  // 滚动到指定行
+  const scrollToLine = useCallback((lineNumber: number) => {
+    if (isEditing && textareaRef.current) {
+      // 编辑模式：滚动到 textarea 中的指定行
+      const lines = localContent.split('\n');
+      let targetPosition = 0;
+      
+      for (let i = 0; i < Math.min(lineNumber - 1, lines.length); i++) {
+        targetPosition += lines[i].length + 1; // +1 for newline
+      }
+      
+      textareaRef.current.focus();
+      textareaRef.current.setSelectionRange(targetPosition, targetPosition);
+      textareaRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (previewRef.current) {
+      // 预览模式：查找对应的标题元素并滚动
+      const headingElement = previewRef.current.querySelector(`[data-line="${lineNumber}"]`);
+      
+      if (headingElement) {
+        headingElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        // 如果找不到精确的元素，尝试按比例滚动
+        const totalLines = localContent.split('\n').length;
+        const scrollPercentage = lineNumber / totalLines;
+        const scrollTop = previewRef.current.scrollHeight * scrollPercentage;
+        previewRef.current.scrollTo({ top: scrollTop, behavior: 'smooth' });
+      }
+    }
+  }, [isEditing, localContent]);
+
+  // 暴露方法给父组件
+  useImperativeHandle(ref, () => ({
+    scrollToLine
+  }), [scrollToLine]);
 
   // 处理内容变化
   const handleContentChange = useCallback((newContent: string) => {
@@ -92,16 +145,38 @@ const TyporaEditor: React.FC<TyporaEditorProps> = ({
         />
       ) : (
         <div 
+          ref={previewRef}
           className="editor-preview"
           onClick={handleClick}
         >
           {localContent ? (
             <ReactMarkdown 
               components={{
-                // 自定义组件渲染
-                h1: ({node, ...props}) => <h1 className="md-h1" {...props} />,
-                h2: ({node, ...props}) => <h2 className="md-h2" {...props} />,
-                h3: ({node, ...props}) => <h3 className="md-h3" {...props} />,
+                // 自定义组件渲染，为标题添加行号信息
+                h1: ({node, children, ...props}) => {
+                  const lineNumber = getLineNumberForHeading(localContent, String(children));
+                  return <h1 className="md-h1" data-line={lineNumber} {...props}>{children}</h1>;
+                },
+                h2: ({node, children, ...props}) => {
+                  const lineNumber = getLineNumberForHeading(localContent, String(children));
+                  return <h2 className="md-h2" data-line={lineNumber} {...props}>{children}</h2>;
+                },
+                h3: ({node, children, ...props}) => {
+                  const lineNumber = getLineNumberForHeading(localContent, String(children));
+                  return <h3 className="md-h3" data-line={lineNumber} {...props}>{children}</h3>;
+                },
+                h4: ({node, children, ...props}) => {
+                  const lineNumber = getLineNumberForHeading(localContent, String(children));
+                  return <h4 className="md-h4" data-line={lineNumber} {...props}>{children}</h4>;
+                },
+                h5: ({node, children, ...props}) => {
+                  const lineNumber = getLineNumberForHeading(localContent, String(children));
+                  return <h5 className="md-h5" data-line={lineNumber} {...props}>{children}</h5>;
+                },
+                h6: ({node, children, ...props}) => {
+                  const lineNumber = getLineNumberForHeading(localContent, String(children));
+                  return <h6 className="md-h6" data-line={lineNumber} {...props}>{children}</h6>;
+                },
                 p: ({node, ...props}) => <p className="md-p" {...props} />,
                 blockquote: ({node, ...props}) => <blockquote className="md-blockquote" {...props} />,
                 code: ({node, className, children, ...props}) => {
@@ -357,6 +432,8 @@ const TyporaEditor: React.FC<TyporaEditorProps> = ({
       `}</style>
     </div>
   );
-};
+});
+
+TyporaEditor.displayName = 'TyporaEditor';
 
 export default TyporaEditor;
