@@ -19,6 +19,9 @@ export interface GraphNode {
     wordCount: number;
     lastModified: string;
     tags: string[];
+    level?: number;
+    fullName?: string;
+    noteCount?: number;
   };
 }
 
@@ -26,11 +29,13 @@ export interface GraphEdge {
   id: string;
   source: string;
   target: string;
-  type: 'link' | 'tag' | 'similarity';
+  type: 'link' | 'tag' | 'similarity' | 'hierarchy';
   weight: number;
   metadata: {
     linkText?: string;
     context?: string;
+    fullTagName?: string;
+    relationshipType?: string;
   };
 }
 

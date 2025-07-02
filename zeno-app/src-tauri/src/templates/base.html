@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="{{ config.default_language }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ config.title }}{% endblock title %}</title>
+    <meta name="description" content="{% block description %}{{ config.description }}{% endblock description %}">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ get_url(path='main.css') }}">
+    
+    <!-- RSS Feed -->
+    {% if config.generate_rss %}
+    <link rel="alternate" type="application/rss+xml" title="{{ config.title }}" href="{{ get_url(path='rss.xml') }}">
+    {% endif %}
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{{ get_url(path='favicon.ico') }}">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ current_url }}">
+    <meta property="og:title" content="{% block og_title %}{{ config.title }}{% endblock og_title %}">
+    <meta property="og:description" content="{% block og_description %}{{ config.description }}{% endblock og_description %}">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="{{ current_url }}">
+    <meta property="twitter:title" content="{% block twitter_title %}{{ config.title }}{% endblock twitter_title %}">
+    <meta property="twitter:description" content="{% block twitter_description %}{{ config.description }}{% endblock twitter_description %}">
+    
+    <!-- Math rendering -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.4/dist/katex.min.css">
+    
+    <!-- Syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+    
+    {% block extra_head %}{% endblock extra_head %}
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="site-header">
+            <nav class="navbar">
+                <div class="nav-brand">
+                    <a href="{{ get_url(path='') }}" class="brand-link">
+                        <h1 class="site-title">{{ config.title }}</h1>
+                    </a>
+                </div>
+                
+                <div class="nav-menu">
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="{{ get_url(path='') }}" class="nav-link">首页</a>
+                        </li>
+                        {% if config.build_search_index %}
+                        <li class="nav-item">
+                            <div class="search-container">
+                                <input type="text" id="search" placeholder="搜索..." class="search-input">
+                                <div id="search-results" class="search-results"></div>
+                            </div>
+                        </li>
+                        {% endif %}
+                        {% if config.generate_rss %}
+                        <li class="nav-item">
+                            <a href="{{ get_url(path='rss.xml') }}" class="nav-link" title="RSS订阅">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M6.503 20.752c0 1.794-1.456 3.248-3.251 3.248-1.796 0-3.252-1.454-3.252-3.248 0-1.794 1.456-3.248 3.252-3.248 1.795.001 3.251 1.454 3.251 3.248zm-6.503-12.572v4.811c6.05.062 10.96 4.966 11.022 11.009h4.818c-.062-8.71-7.118-15.758-15.84-15.82zm0-3.368c10.58.046 19.152 8.594 19.183 19.188h4.817c-.03-13.231-10.755-23.954-24-24v4.812z"/>
+                                </svg>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            {% block content %}{% endblock content %}
+        </main>
+
+        <!-- Sidebar -->
+        {% block sidebar %}
+        <aside class="sidebar">
+            <!-- Tags Cloud -->
+            {% if terms %}
+            <div class="widget">
+                <h3 class="widget-title">标签</h3>
+                <div class="tags-cloud">
+                    {% for term in terms %}
+                    <a href="{{ term.permalink }}" class="tag-link" style="font-size: {{ term.weight }}em;">
+                        {{ term.name }} ({{ term.pages | length }})
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Recent Posts -->
+            {% set recent_pages = get_pages(limit=5) %}
+            {% if recent_pages %}
+            <div class="widget">
+                <h3 class="widget-title">最新文章</h3>
+                <ul class="recent-posts">
+                    {% for page in recent_pages %}
+                    <li class="recent-post">
+                        <a href="{{ page.permalink }}" class="recent-post-link">
+                            {{ page.title }}
+                        </a>
+                        <time class="recent-post-date">{{ page.date | date(format='%Y-%m-%d') }}</time>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </aside>
+        {% endblock sidebar %}
+
+        <!-- Footer -->
+        <footer class="site-footer">
+            <div class="footer-content">
+                <p>&copy; {{ now() | date(format='%Y') }} {{ config.author | default(value=config.title) }}. 
+                   基于 <a href="https://www.getzola.org/" target="_blank">Zola</a> 构建。
+                </p>
+                {% if config.extra.footer_links %}
+                <div class="footer-links">
+                    {% for link in config.extra.footer_links %}
+                    <a href="{{ link.url }}" {% if link.external %}target="_blank"{% endif %} class="footer-link">
+                        {{ link.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    {% if config.build_search_index %}
+    <script defer src="{{ get_url(path='search_index.en.js') }}"></script>
+    <script defer src="{{ get_url(path='search.js') }}"></script>
+    {% endif %}
+    
+    <!-- Math rendering -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "$", right: "$", display: false}
+                ]
+            });
+        });
+    </script>
+    
+    <!-- Syntax highlighting -->
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    
+    {% block extra_scripts %}{% endblock extra_scripts %}
+</body>
+</html>

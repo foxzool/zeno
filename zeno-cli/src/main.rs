@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 use anyhow::Result;
 use std::path::PathBuf;
-use zeno_core::{MarkdownParser, LocalFileStorage};
+use zeno_core::{MarkdownParser, LocalFileStorage, FileStorage};
 
 #[derive(Parser)]
 #[command(name = "zeno")]

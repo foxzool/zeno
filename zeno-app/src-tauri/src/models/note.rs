@@ -25,9 +25,26 @@ pub struct Frontmatter {
     pub categories: Vec<String>,
     pub status: NoteStatus,
     pub publish: Option<PublishConfig>,
+    pub description: Option<String>,
+    pub extra: std::collections::HashMap<String, serde_json::Value>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+impl Default for Frontmatter {
+    fn default() -> Self {
+        Self {
+            title: None,
+            date: None,
+            tags: Vec::new(),
+            categories: Vec::new(),
+            status: NoteStatus::default(),
+            publish: None,
+            description: None,
+            extra: std::collections::HashMap::new(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum NoteStatus {
     Draft,
     Published,

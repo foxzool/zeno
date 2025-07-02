@@ -3,9 +3,17 @@ pub mod config;
 pub mod app;
 pub mod links;
 pub mod tags;
+pub mod publisher;
+pub mod wechat;
+pub mod import_export;
+pub mod plugin_commands;
 
 pub use notes::*;
 pub use config::*;
 pub use app::*;
 pub use links::*;
 pub use tags::*;
+pub use publisher::*;
+pub use wechat::*;
+pub use import_export::*;
+pub use plugin_commands::*;

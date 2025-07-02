@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}{{ config.title }}{% endblock title %}
+
+{% block content %}
+<div class="homepage">
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">{{ config.title }}</h1>
+            <p class="hero-description">{{ config.description }}</p>
+            {% if config.extra.hero_cta %}
+            <div class="hero-cta">
+                <a href="{{ config.extra.hero_cta.url }}" class="cta-button">
+                    {{ config.extra.hero_cta.text }}
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Featured Content -->
+    {% set featured_pages = get_pages() | filter(attribute="extra.featured", value=true) | slice(end=3) %}
+    {% if featured_pages %}
+    <section class="featured-content">
+        <h2 class="section-title">精选文章</h2>
+        <div class="featured-grid">
+            {% for page in featured_pages %}
+            <article class="featured-card">
+                {% if page.extra.image %}
+                <div class="card-image">
+                    <img src="{{ page.extra.image }}" alt="{{ page.title }}" loading="lazy">
+                </div>
+                {% endif %}
+                <div class="card-content">
+                    <h3 class="card-title">
+                        <a href="{{ page.permalink }}">{{ page.title }}</a>
+                    </h3>
+                    {% if page.summary %}
+                    <p class="card-summary">{{ page.summary }}</p>
+                    {% endif %}
+                    <div class="card-meta">
+                        <time class="card-date">{{ page.date | date(format='%Y年%m月%d日') }}</time>
+                        {% if page.taxonomies.tags %}
+                        <div class="card-tags">
+                            {% for tag in page.taxonomies.tags %}
+                            <span class="tag">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Recent Posts -->
+    {% set recent_pages = get_pages() | slice(end=10) %}
+    {% if recent_pages %}
+    <section class="recent-posts">
+        <h2 class="section-title">最新文章</h2>
+        <div class="posts-list">
+            {% for page in recent_pages %}
+            <article class="post-item">
+                <div class="post-content">
+                    <h3 class="post-title">
+                        <a href="{{ page.permalink }}">{{ page.title }}</a>
+                    </h3>
+                    {% if page.summary %}
+                    <p class="post-summary">{{ page.summary }}</p>
+                    {% endif %}
+                    <div class="post-meta">
+                        <time class="post-date">{{ page.date | date(format='%Y年%m月%d日') }}</time>
+                        {% if page.taxonomies.tags %}
+                        <div class="post-tags">
+                            {% for tag in page.taxonomies.tags %}
+                            <a href="{{ get_taxonomy_url(kind='tags', name=tag) }}" class="tag-link">{{ tag }}</a>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        {% if page.reading_time %}
+                        <span class="reading-time">{{ page.reading_time }} 分钟阅读</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+        
+        {% if paginator %}
+        <div class="pagination">
+            {% if paginator.previous %}
+            <a href="{{ paginator.previous }}" class="pagination-link pagination-prev">
+                ← 上一页
+            </a>
+            {% endif %}
+            
+            <span class="pagination-info">
+                第 {{ paginator.current_index }} 页，共 {{ paginator.number_pagers }} 页
+            </span>
+            
+            {% if paginator.next %}
+            <a href="{{ paginator.next }}" class="pagination-link pagination-next">
+                下一页 →
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    <!-- Categories Overview -->
+    {% set categories = get_taxonomy(kind="categories") %}
+    {% if categories.items %}
+    <section class="categories-overview">
+        <h2 class="section-title">分类</h2>
+        <div class="categories-grid">
+            {% for category in categories.items %}
+            <div class="category-card">
+                <h3 class="category-title">
+                    <a href="{{ category.permalink }}">{{ category.name }}</a>
+                </h3>
+                <p class="category-count">{{ category.pages | length }} 篇文章</p>
+                {% if category.pages %}
+                <ul class="category-posts">
+                    {% for page in category.pages | slice(end=3) %}
+                    <li>
+                        <a href="{{ page.permalink }}">{{ page.title }}</a>
+                    </li>
+                    {% endfor %}
+                    {% if category.pages | length > 3 %}
+                    <li>
+                        <a href="{{ category.permalink }}">查看更多...</a>
+                    </li>
+                    {% endif %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Statistics -->
+    {% if config.extra.show_stats %}
+    <section class="site-stats">
+        <h2 class="section-title">站点统计</h2>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <span class="stat-number">{{ get_pages() | length }}</span>
+                <span class="stat-label">文章总数</span>
+            </div>
+            {% if get_taxonomy(kind="tags") %}
+            <div class="stat-item">
+                <span class="stat-number">{{ get_taxonomy(kind="tags").items | length }}</span>
+                <span class="stat-label">标签数量</span>
+            </div>
+            {% endif %}
+            {% if get_taxonomy(kind="categories") %}
+            <div class="stat-item">
+                <span class="stat-number">{{ get_taxonomy(kind="categories").items | length }}</span>
+                <span class="stat-label">分类数量</span>
+            </div>
+            {% endif %}
+            <div class="stat-item">
+                <span class="stat-number">{{ now() | date(format='%Y') }}</span>
+                <span class="stat-label">建站年份</span>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock content %}

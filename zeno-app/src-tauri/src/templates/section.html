@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+
+{% block title %}{{ section.title }} | {{ config.title }}{% endblock title %}
+{% block description %}{% if section.description %}{{ section.description }}{% else %}{{ config.description }}{% endif %}{% endblock description %}
+
+{% block content %}
+<div class="section-page">
+    <!-- Section Header -->
+    <header class="section-header">
+        {% if section.ancestors %}
+        <nav class="breadcrumb">
+            <a href="{{ get_url(path='') }}">首页</a>
+            {% for ancestor in section.ancestors %}
+            <span class="breadcrumb-separator">→</span>
+            <a href="{{ ancestor.permalink }}">{{ ancestor.title }}</a>
+            {% endfor %}
+            <span class="breadcrumb-separator">→</span>
+            <span class="breadcrumb-current">{{ section.title }}</span>
+        </nav>
+        {% endif %}
+        
+        <h1 class="section-title">{{ section.title }}</h1>
+        
+        {% if section.description %}
+        <p class="section-description">{{ section.description }}</p>
+        {% endif %}
+        
+        <!-- Section Stats -->
+        <div class="section-stats">
+            {% if section.pages %}
+            <span class="stat-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+                </svg>
+                {{ section.pages | length }} 篇文章
+            </span>
+            {% endif %}
+            
+            {% if section.subsections %}
+            <span class="stat-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
+                </svg>
+                {{ section.subsections | length }} 个子分类
+            </span>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- Section Content -->
+    {% if section.content %}
+    <div class="section-content">
+        {{ section.content | safe }}
+    </div>
+    {% endif %}
+
+    <!-- Subsections -->
+    {% if section.subsections %}
+    <section class="subsections">
+        <h2 class="subsections-title">子分类</h2>
+        <div class="subsections-grid">
+            {% for subsection in section.subsections %}
+            <div class="subsection-card">
+                <h3 class="subsection-title">
+                    <a href="{{ subsection.permalink }}">{{ subsection.title }}</a>
+                </h3>
+                {% if subsection.description %}
+                <p class="subsection-description">{{ subsection.description }}</p>
+                {% endif %}
+                <div class="subsection-meta">
+                    {% if subsection.pages %}
+                    <span class="subsection-count">{{ subsection.pages | length }} 篇文章</span>
+                    {% endif %}
+                    {% if subsection.subsections %}
+                    <span class="subsection-count">{{ subsection.subsections | length }} 个子分类</span>
+                    {% endif %}
+                </div>
+                {% if subsection.pages %}
+                <ul class="subsection-posts">
+                    {% for page in subsection.pages | slice(end=3) %}
+                    <li>
+                        <a href="{{ page.permalink }}" class="subsection-post-link">
+                            {{ page.title }}
+                        </a>
+                        <time class="subsection-post-date">{{ page.date | date(format='%m-%d') }}</time>
+                    </li>
+                    {% endfor %}
+                    {% if subsection.pages | length > 3 %}
+                    <li>
+                        <a href="{{ subsection.permalink }}" class="subsection-more">查看更多...</a>
+                    </li>
+                    {% endif %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Pages List -->
+    {% if section.pages %}
+    <section class="pages-list">
+        <h2 class="pages-title">
+            {% if section.subsections %}文章列表{% else %}所有文章{% endif %}
+        </h2>
+        
+        <!-- Sort and Filter Options -->
+        <div class="list-controls">
+            <div class="sort-options">
+                <label for="sort-select">排序方式:</label>
+                <select id="sort-select" onchange="sortPosts(this.value)">
+                    <option value="date-desc">最新发布</option>
+                    <option value="date-asc">最早发布</option>
+                    <option value="title-asc">标题 A-Z</option>
+                    <option value="title-desc">标题 Z-A</option>
+                </select>
+            </div>
+            
+            {% if section.pages | map(attribute="taxonomies.tags") | flatten | unique %}
+            <div class="filter-tags">
+                <span class="filter-label">标签筛选:</span>
+                <div class="tag-filters">
+                    <button class="tag-filter active" data-tag="all">全部</button>
+                    {% set all_tags = section.pages | map(attribute="taxonomies.tags") | flatten | unique %}
+                    {% for tag in all_tags %}
+                    <button class="tag-filter" data-tag="{{ tag }}">{{ tag }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Posts Grid -->
+        <div class="posts-grid" id="posts-container">
+            {% for page in section.pages %}
+            <article class="post-card" 
+                     data-date="{{ page.date | date(format='%Y%m%d') }}"
+                     data-title="{{ page.title | lower }}"
+                     data-tags="{% if page.taxonomies.tags %}{{ page.taxonomies.tags | join(sep=' ') }}{% endif %}">
+                {% if page.extra.image %}
+                <div class="post-image">
+                    <a href="{{ page.permalink }}">
+                        <img src="{{ page.extra.image }}" alt="{{ page.title }}" loading="lazy">
+                    </a>
+                </div>
+                {% endif %}
+                
+                <div class="post-card-content">
+                    <h3 class="post-card-title">
+                        <a href="{{ page.permalink }}">{{ page.title }}</a>
+                    </h3>
+                    
+                    {% if page.summary %}
+                    <p class="post-card-summary">{{ page.summary }}</p>
+                    {% endif %}
+                    
+                    <div class="post-card-meta">
+                        <time class="post-card-date" datetime="{{ page.date | date(format='%Y-%m-%d') }}">
+                            {{ page.date | date(format='%Y年%m月%d日') }}
+                        </time>
+                        
+                        {% if page.reading_time %}
+                        <span class="post-card-reading-time">{{ page.reading_time }} 分钟阅读</span>
+                        {% endif %}
+                        
+                        {% if page.word_count %}
+                        <span class="post-card-word-count">{{ page.word_count }} 字</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if page.taxonomies.tags %}
+                    <div class="post-card-tags">
+                        {% for tag in page.taxonomies.tags %}
+                        <a href="{{ get_taxonomy_url(kind='tags', name=tag) }}" class="post-tag">{{ tag }}</a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+
+        <!-- Load More Button -->
+        {% if section.pages | length > 12 %}
+        <div class="load-more-container">
+            <button id="load-more-btn" class="load-more-btn">加载更多</button>
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
+
+    <!-- Pagination -->
+    {% if paginator %}
+    <nav class="pagination">
+        {% if paginator.previous %}
+        <a href="{{ paginator.previous }}" class="pagination-link pagination-prev">
+            ← 上一页
+        </a>
+        {% endif %}
+        
+        <div class="pagination-numbers">
+            {% for page_num in range(start=1, end=paginator.number_pagers + 1) %}
+            {% if page_num == paginator.current_index %}
+            <span class="pagination-number pagination-current">{{ page_num }}</span>
+            {% else %}
+            <a href="{{ paginator.base_url }}{% if page_num > 1 %}page/{{ page_num }}/{% endif %}" 
+               class="pagination-number">{{ page_num }}</a>
+            {% endif %}
+            {% endfor %}
+        </div>
+        
+        {% if paginator.next %}
+        <a href="{{ paginator.next }}" class="pagination-link pagination-next">
+            下一页 →
+        </a>
+        {% endif %}
+    </nav>
+    
+    <div class="pagination-info">
+        第 {{ paginator.current_index }} 页，共 {{ paginator.number_pagers }} 页
+    </div>
+    {% endif %}
+
+    <!-- Section RSS Feed -->
+    {% if config.generate_rss %}
+    <div class="section-rss">
+        <a href="{{ section.permalink }}rss.xml" class="rss-link" title="订阅此分类的 RSS">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6.503 20.752c0 1.794-1.456 3.248-3.251 3.248-1.796 0-3.252-1.454-3.252-3.248 0-1.794 1.456-3.248 3.252-3.248 1.795.001 3.251 1.454 3.251 3.248zm-6.503-12.572v4.811c6.05.062 10.96 4.966 11.022 11.009h4.818c-.062-8.71-7.118-15.758-15.84-15.82zm0-3.368c10.58.046 19.152 8.594 19.183 19.188h4.817c-.03-13.231-10.755-23.954-24-24v4.812z"/>
+            </svg>
+            订阅 {{ section.title }}
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock content %}
+
+{% block extra_scripts %}
+<script>
+// Post sorting functionality
+function sortPosts(sortBy) {
+    const container = document.getElementById('posts-container');
+    const posts = Array.from(container.querySelectorAll('.post-card'));
+    
+    posts.sort((a, b) => {
+        switch(sortBy) {
+            case 'date-desc':
+                return parseInt(b.dataset.date) - parseInt(a.dataset.date);
+            case 'date-asc':
+                return parseInt(a.dataset.date) - parseInt(b.dataset.date);
+            case 'title-asc':
+                return a.dataset.title.localeCompare(b.dataset.title);
+            case 'title-desc':
+                return b.dataset.title.localeCompare(a.dataset.title);
+            default:
+                return 0;
+        }
+    });
+    
+    posts.forEach(post => container.appendChild(post));
+}
+
+// Tag filtering functionality
+document.querySelectorAll('.tag-filter').forEach(button => {
+    button.addEventListener('click', function() {
+        const selectedTag = this.dataset.tag;
+        
+        // Update active button
+        document.querySelectorAll('.tag-filter').forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Filter posts
+        document.querySelectorAll('.post-card').forEach(post => {
+            if (selectedTag === 'all' || post.dataset.tags.includes(selectedTag)) {
+                post.style.display = 'block';
+            } else {
+                post.style.display = 'none';
+            }
+        });
+    });
+});
+
+// Load more functionality
+let visiblePosts = 12;
+const loadMoreBtn = document.getElementById('load-more-btn');
+const allPosts = document.querySelectorAll('.post-card');
+
+// Initially hide posts beyond the first 12
+if (allPosts.length > 12) {
+    allPosts.forEach((post, index) => {
+        if (index >= 12) {
+            post.style.display = 'none';
+        }
+    });
+}
+
+if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', function() {
+        const hiddenPosts = Array.from(allPosts).slice(visiblePosts, visiblePosts + 12);
+        
+        hiddenPosts.forEach(post => {
+            post.style.display = 'block';
+        });
+        
+        visiblePosts += 12;
+        
+        if (visiblePosts >= allPosts.length) {
+            this.style.display = 'none';
+        }
+    });
+}
+
+// Search within section
+if (window.search_index) {
+    const searchInput = document.getElementById('section-search');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            
+            allPosts.forEach(post => {
+                const title = post.querySelector('.post-card-title').textContent.toLowerCase();
+                const summary = post.querySelector('.post-card-summary')?.textContent.toLowerCase() || '';
+                
+                if (title.includes(query) || summary.includes(query)) {
+                    post.style.display = 'block';
+                } else {
+                    post.style.display = 'none';
+                }
+            });
+        });
+    }
+}
+</script>
+{% endblock extra_scripts %}

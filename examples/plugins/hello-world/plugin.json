@@ -1,0 +1,59 @@
+{
+  "id": "hello-world",
+  "name": "Hello World Plugin",
+  "version": "1.0.0",
+  "description": "A simple hello world plugin that demonstrates basic Zeno plugin capabilities",
+  "author": "Zeno Team",
+  "license": "MIT",
+  "main": "index.js",
+  "category": "utility",
+  "keywords": ["example", "hello", "demo"],
+  "repository": "https://github.com/foxzool/zeno/tree/main/examples/plugins/hello-world",
+  "homepage": "https://github.com/foxzool/zeno",
+  "files": [
+    "index.js",
+    "plugin.json",
+    "README.md"
+  ],
+  "permissions": {
+    "file_system": {
+      "read_workspace": true,
+      "write_workspace": false,
+      "allowed_paths": [],
+      "denied_paths": []
+    },
+    "network": {
+      "http_request": false,
+      "allowed_domains": [],
+      "denied_domains": []
+    },
+    "ui": {
+      "show_notifications": true,
+      "create_menus": false,
+      "register_commands": true
+    },
+    "api": {
+      "access_notes": true,
+      "access_tags": true,
+      "access_links": false,
+      "modify_content": false
+    }
+  },
+  "config": {
+    "auto_enable": false,
+    "settings": {
+      "greeting_message": {
+        "type": "string",
+        "default": "Hello from Zeno!",
+        "description": "The greeting message to display"
+      },
+      "show_timestamp": {
+        "type": "boolean",
+        "default": true,
+        "description": "Whether to show timestamp in messages"
+      }
+    }
+  },
+  "dependencies": [],
+  "zeno_version": ">=0.1.0"
+}

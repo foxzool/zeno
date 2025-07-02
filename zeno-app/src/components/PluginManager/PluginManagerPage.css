@@ -1,0 +1,535 @@
+.plugin-manager-page {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.page-header h1 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.page-header p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.error-banner {
+  background: var(--error-background);
+  color: var(--error-text);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--error-border);
+}
+
+.error-banner button {
+  background: none;
+  border: none;
+  color: var(--error-text);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tab-navigation {
+  display: flex;
+  border-bottom: 2px solid var(--border-color);
+  margin-bottom: 2rem;
+  gap: 0.5rem;
+}
+
+.tab-navigation button {
+  background: none;
+  border: none;
+  padding: 1rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.tab-navigation button:hover {
+  color: var(--text-primary);
+  background: var(--hover-background);
+}
+
+.tab-navigation button.active {
+  color: var(--accent-color);
+  border-bottom-color: var(--accent-color);
+  font-weight: 600;
+}
+
+.loading-indicator {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+.plugins-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.plugin-card {
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.plugin-card:hover {
+  border-color: var(--accent-color);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.plugin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.plugin-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+.plugin-version {
+  background: var(--secondary-background);
+  color: var(--text-secondary);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 0.5rem;
+}
+
+.plugin-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.verified-badge {
+  background: var(--success-color);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.plugin-info {
+  margin-bottom: 1.5rem;
+}
+
+.plugin-description {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.plugin-author {
+  margin: 0 0 1rem 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.plugin-categories,
+.plugin-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.category-tag,
+.tag {
+  background: var(--tag-background);
+  color: var(--tag-text);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.plugin-stats {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.runtime-info {
+  background: var(--secondary-background);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.runtime-status {
+  margin-bottom: 0.5rem;
+}
+
+.status-indicator {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-indicator.running {
+  background: var(--success-background);
+  color: var(--success-color);
+}
+
+.status-indicator.starting {
+  background: var(--warning-background);
+  color: var(--warning-color);
+}
+
+.status-indicator.stopped,
+.status-indicator.error,
+.status-indicator.crashed {
+  background: var(--error-background);
+  color: var(--error-color);
+}
+
+.runtime-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.error-count {
+  color: var(--error-color);
+  font-weight: 600;
+}
+
+.plugin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.plugin-actions button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-btn.enabled {
+  background: var(--success-color);
+  color: white;
+}
+
+.toggle-btn.disabled {
+  background: var(--secondary-background);
+  color: var(--text-secondary);
+}
+
+.restart-btn {
+  background: var(--warning-color);
+  color: white;
+}
+
+.uninstall-btn {
+  background: var(--error-color);
+  color: white;
+}
+
+.install-btn {
+  background: var(--accent-color);
+  color: white;
+}
+
+.plugin-actions button:hover:not(:disabled) {
+  opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+.plugin-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.plugin-link {
+  color: var(--accent-color);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.plugin-link:hover {
+  text-decoration: underline;
+}
+
+.marketplace-content {
+  margin-top: 1rem;
+}
+
+.marketplace-search {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  align-items: center;
+}
+
+.search-input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 1rem;
+  background: var(--input-background);
+  color: var(--text-primary);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.1);
+}
+
+.category-select {
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 1rem;
+  background: var(--input-background);
+  color: var(--text-primary);
+  min-width: 150px;
+}
+
+.marketplace-card {
+  border: 1px solid var(--border-color);
+}
+
+.marketplace-card:hover {
+  border-color: var(--accent-color);
+}
+
+.install-content {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3rem;
+  max-width: 800px;
+}
+
+.install-form {
+  background: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+.install-form h3 {
+  margin: 0 0 1.5rem 0;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.install-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 1rem;
+  background: var(--input-background);
+  color: var(--text-primary);
+}
+
+.install-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(var(--accent-color-rgb), 0.1);
+}
+
+.install-options {
+  margin-bottom: 2rem;
+}
+
+.install-options h4 {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  margin-right: 0.5rem;
+  cursor: pointer;
+}
+
+.install-button {
+  width: 100%;
+  padding: 1rem;
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.install-button:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.install-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.install-help {
+  background: var(--secondary-background);
+  border-radius: 8px;
+  padding: 1.5rem;
+  height: fit-content;
+}
+
+.install-help h4 {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.install-help ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+.install-help li {
+  margin-bottom: 0.5rem;
+}
+
+.install-help strong {
+  color: var(--text-primary);
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-secondary);
+}
+
+.empty-state p {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .plugin-manager-page {
+    padding: 1rem;
+  }
+  
+  .plugins-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .marketplace-search {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .install-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .plugin-actions {
+    justify-content: center;
+  }
+  
+  .tab-navigation {
+    flex-wrap: wrap;
+  }
+}
+
+/* 深色模式适配 */
+[data-theme="dark"] {
+  --card-background: #2a2d3a;
+  --secondary-background: #363947;
+  --input-background: #363947;
+  --tag-background: #4a4d5a;
+  --tag-text: #e2e8f0;
+  --success-background: rgba(34, 197, 94, 0.1);
+  --warning-background: rgba(251, 191, 36, 0.1);
+  --error-background: rgba(239, 68, 68, 0.1);
+}
+
+[data-theme="light"] {
+  --card-background: #ffffff;
+  --secondary-background: #f8fafc;
+  --input-background: #ffffff;
+  --tag-background: #e2e8f0;
+  --tag-text: #475569;
+  --success-background: rgba(34, 197, 94, 0.1);
+  --warning-background: rgba(251, 191, 36, 0.1);
+  --error-background: rgba(239, 68, 68, 0.1);
+}

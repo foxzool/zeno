@@ -2,9 +2,11 @@ pub mod commands;
 pub mod models;
 pub mod services;
 
-use std::sync::Mutex;
-use services::LinkIndex;
+use std::sync::{Mutex, Arc};
+use services::{LinkIndex, ImportExportManager, PluginManager, PluginAPIService, PluginRuntimeManager};
 use models::tag::TagHierarchy;
+use models::publisher::PublishConfig;
+use models::wechat::WeChatConfig;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -13,6 +15,12 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .manage(Mutex::new(LinkIndex::new()))
         .manage(Mutex::new(TagHierarchy::new()))
+        .manage(Mutex::new(PublishConfig::default()))
+        .manage(Mutex::new(WeChatConfig::default()))
+        .manage(Arc::new(tokio::sync::Mutex::new(ImportExportManager::new())))
+        .manage(Arc::new(Mutex::new(PluginManager::default())))
+        .manage(Arc::new(Mutex::new(PluginAPIService::default())))
+        .manage(Arc::new(Mutex::new(PluginRuntimeManager::default())))
         .invoke_handler(tauri::generate_handler![
             commands::get_app_version,
             commands::get_app_info,
@@ -65,6 +73,68 @@ pub fn run() {
             commands::rebuild_tag_hierarchy,
             commands::suggest_tags_for_content,
             commands::extract_tags_from_content,
+            // 发布相关命令
+            commands::initialize_zola_site,
+            commands::publish_notes_to_site,
+            commands::get_publish_config,
+            commands::save_publish_config,
+            commands::create_default_zola_config,
+            commands::check_zola_installation,
+            commands::get_site_stats,
+            commands::preview_publish_content,
+            // 微信公众号相关命令
+            commands::test_wechat_config,
+            commands::get_wechat_config,
+            commands::save_wechat_config,
+            commands::create_default_wechat_config,
+            commands::publish_note_to_wechat,
+            commands::publish_notes_to_wechat,
+            commands::preview_wechat_content,
+            commands::get_wechat_stats,
+            commands::refresh_wechat_token,
+            commands::upload_media_to_wechat,
+            commands::create_default_wechat_settings,
+            commands::validate_wechat_content,
+            // 导入导出相关命令
+            commands::get_available_importers,
+            commands::get_available_exporters,
+            commands::create_default_import_config,
+            commands::create_default_export_config,
+            commands::preview_import,
+            commands::execute_import,
+            commands::preview_export,
+            commands::execute_export,
+            commands::validate_import_source,
+            commands::validate_export_target,
+            commands::get_import_conflicts,
+            commands::create_import_options,
+            commands::create_export_options,
+            commands::get_supported_import_formats,
+            commands::get_supported_export_formats,
+            commands::scan_import_directory,
+            commands::estimate_export_size,
+            // 插件相关命令
+            commands::install_plugin,
+            commands::uninstall_plugin,
+            commands::enable_plugin,
+            commands::disable_plugin,
+            commands::get_all_plugins,
+            commands::get_enabled_plugins,
+            commands::check_plugin_updates,
+            commands::update_plugin,
+            commands::get_plugin_runtime_states,
+            commands::restart_plugin_runtime,
+            commands::call_plugin_api,
+            commands::send_message_to_plugin,
+            commands::broadcast_event_to_plugins,
+            commands::get_plugin_api_stats,
+            commands::register_plugin_event_handler,
+            commands::save_plugin_configs,
+            commands::cleanup_crashed_plugin_runtimes,
+            commands::get_plugin_marketplace_info,
+            commands::search_plugin_marketplace,
+            commands::get_plugin_details,
+            commands::validate_plugin,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -34,8 +34,7 @@ const GraphPage: React.FC = () => {
   const [showStats, setShowStats] = useState(false);
   const [showTagBrowser, setShowTagBrowser] = useState(false);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [filteredNodes, setFilteredNodes] = useState(nodes);
-  const [filteredEdges, setFilteredEdges] = useState(edges);
+  // 移除未使用的状态变量，直接使用 displayNodes 和 displayEdges
 
   // 根据选中的标签过滤节点和边
   const { displayNodes, displayEdges } = useMemo(() => {

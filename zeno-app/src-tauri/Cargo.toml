@@ -29,5 +29,12 @@ chrono = { version = "0.4", features = ["serde"] }
 anyhow = "1"
 thiserror = "1"
 regex = "1.10"
+pulldown-cmark = "0.10"
+serde_yaml = "0.9"
+tera = "1.19"
+log = "0.4"
+reqwest = { version = "0.11", features = ["json", "multipart"] }
+async-trait = "0.1"
 zeno-core = { path = "../../zeno-core" }
+dirs = "5.0"
 

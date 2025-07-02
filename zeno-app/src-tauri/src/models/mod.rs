@@ -1,9 +1,21 @@
 pub mod note;
 pub mod error;
 pub mod link;
+pub mod publisher;
 pub mod tag;
+pub mod wechat;
+pub mod importer;
+pub mod exporter;
+pub mod plugin;
+pub mod plugin_api;
 
 pub use note::*;
 pub use error::*;
 pub use link::*;
+pub use publisher::*;
 pub use tag::*;
+pub use wechat::*;
+pub use importer::*;
+pub use exporter::*;
+pub use plugin::*;
+pub use plugin_api::*;

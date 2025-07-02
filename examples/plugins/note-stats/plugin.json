@@ -1,0 +1,73 @@
+{
+  "id": "note-stats",
+  "name": "Note Statistics",
+  "version": "1.0.0",
+  "description": "Provides detailed statistics about your notes, including word counts, tag usage, and writing patterns",
+  "author": "Zeno Team",
+  "license": "MIT",
+  "main": "index.js",
+  "category": "analytics",
+  "keywords": ["statistics", "analytics", "notes", "metrics"],
+  "repository": "https://github.com/foxzool/zeno/tree/main/examples/plugins/note-stats",
+  "homepage": "https://github.com/foxzool/zeno",
+  "files": [
+    "index.js",
+    "plugin.json",
+    "README.md",
+    "stats.css"
+  ],
+  "permissions": {
+    "file_system": {
+      "read_workspace": true,
+      "write_workspace": false,
+      "allowed_paths": [".zeno/stats"],
+      "denied_paths": []
+    },
+    "network": {
+      "http_request": false,
+      "allowed_domains": [],
+      "denied_domains": []
+    },
+    "ui": {
+      "show_notifications": true,
+      "create_menus": true,
+      "register_commands": true
+    },
+    "api": {
+      "access_notes": true,
+      "access_tags": true,
+      "access_links": true,
+      "modify_content": false
+    }
+  },
+  "config": {
+    "auto_enable": true,
+    "settings": {
+      "update_interval": {
+        "type": "number",
+        "default": 300,
+        "description": "Statistics update interval in seconds",
+        "min": 60,
+        "max": 3600
+      },
+      "include_archived": {
+        "type": "boolean",
+        "default": false,
+        "description": "Include archived notes in statistics"
+      },
+      "show_detailed_tags": {
+        "type": "boolean",
+        "default": true,
+        "description": "Show detailed tag usage statistics"
+      },
+      "export_format": {
+        "type": "string",
+        "default": "json",
+        "options": ["json", "csv", "markdown"],
+        "description": "Default export format for statistics"
+      }
+    }
+  },
+  "dependencies": [],
+  "zeno_version": ">=0.1.0"
+}
