@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useTheme } from '../ThemeProvider';
+import FrontMatter from '../FrontMatter';
 
 export interface TyporaEditorProps {
   content: string;
@@ -14,14 +15,49 @@ export interface TyporaEditorRef {
   scrollToLine: (lineNumber: number) => void;
 }
 
-// 辅助函数：获取标题在内容中的行号
-const getLineNumberForHeading = (content: string, headingText: string): number => {
+// 辅助函数：解析 YAML front matter
+const parseFrontMatter = (content: string): { frontMatter: string | null; markdown: string } => {
   const lines = content.split('\n');
+  
+  // 检查是否以 --- 开头
+  if (lines.length < 3 || lines[0].trim() !== '---') {
+    return { frontMatter: null, markdown: content };
+  }
+  
+  // 查找结束的 ---
+  let endIndex = -1;
+  for (let i = 1; i < lines.length; i++) {
+    if (lines[i].trim() === '---') {
+      endIndex = i;
+      break;
+    }
+  }
+  
+  if (endIndex === -1) {
+    return { frontMatter: null, markdown: content };
+  }
+  
+  // 提取 front matter 和 markdown 内容
+  const frontMatterLines = lines.slice(1, endIndex);
+  const markdownLines = lines.slice(endIndex + 1);
+  
+  return {
+    frontMatter: frontMatterLines.join('\n'),
+    markdown: markdownLines.join('\n')
+  };
+};
+
+// 辅助函数：获取标题在内容中的行号（考虑 front matter 偏移）
+const getLineNumberForHeading = (content: string, headingText: string): number => {
+  const { frontMatter, markdown } = parseFrontMatter(content);
+  const offset = frontMatter ? frontMatter.split('\n').length + 2 : 0; // +2 for the --- lines
+  
+  const lines = markdown.split('\n');
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     const match = line.match(/^(#{1,6})\s+(.+)$/);
     if (match && match[2].trim() === headingText.trim()) {
-      return i + 1;
+      return i + 1 + offset;
     }
   }
   return 1;
@@ -149,54 +185,75 @@ const TyporaEditor = forwardRef<TyporaEditorRef, TyporaEditorProps>(({
           className="editor-preview"
           onClick={handleClick}
         >
-          {localContent ? (
-            <ReactMarkdown 
-              components={{
-                // 自定义组件渲染，为标题添加行号信息
-                h1: ({node, children, ...props}) => {
-                  const lineNumber = getLineNumberForHeading(localContent, String(children));
-                  return <h1 className="md-h1" data-line={lineNumber} {...props}>{children}</h1>;
-                },
-                h2: ({node, children, ...props}) => {
-                  const lineNumber = getLineNumberForHeading(localContent, String(children));
-                  return <h2 className="md-h2" data-line={lineNumber} {...props}>{children}</h2>;
-                },
-                h3: ({node, children, ...props}) => {
-                  const lineNumber = getLineNumberForHeading(localContent, String(children));
-                  return <h3 className="md-h3" data-line={lineNumber} {...props}>{children}</h3>;
-                },
-                h4: ({node, children, ...props}) => {
-                  const lineNumber = getLineNumberForHeading(localContent, String(children));
-                  return <h4 className="md-h4" data-line={lineNumber} {...props}>{children}</h4>;
-                },
-                h5: ({node, children, ...props}) => {
-                  const lineNumber = getLineNumberForHeading(localContent, String(children));
-                  return <h5 className="md-h5" data-line={lineNumber} {...props}>{children}</h5>;
-                },
-                h6: ({node, children, ...props}) => {
-                  const lineNumber = getLineNumberForHeading(localContent, String(children));
-                  return <h6 className="md-h6" data-line={lineNumber} {...props}>{children}</h6>;
-                },
-                p: ({node, ...props}) => <p className="md-p" {...props} />,
-                blockquote: ({node, ...props}) => <blockquote className="md-blockquote" {...props} />,
-                code: ({node, className, children, ...props}) => {
-                  const isInline = !className?.includes('language-');
-                  return isInline ? 
-                    <code className="md-code-inline" {...props}>{children}</code> : 
-                    <code className="md-code-block" {...props}>{children}</code>;
-                },
-                pre: ({node, ...props}) => <pre className="md-pre" {...props} />,
-                ul: ({node, ...props}) => <ul className="md-ul" {...props} />,
-                ol: ({node, ...props}) => <ol className="md-ol" {...props} />,
-                li: ({node, ...props}) => <li className="md-li" {...props} />,
-                table: ({node, ...props}) => <table className="md-table" {...props} />,
-                th: ({node, ...props}) => <th className="md-th" {...props} />,
-                td: ({node, ...props}) => <td className="md-td" {...props} />,
-              }}
-            >
-              {localContent}
-            </ReactMarkdown>
-          ) : (
+          {localContent ? (() => {
+            const { frontMatter, markdown } = parseFrontMatter(localContent);
+            return (
+              <>
+                {/* 渲染 Front Matter */}
+                {frontMatter && (
+                  <FrontMatter 
+                    yamlContent={frontMatter}
+                    onEdit={() => {
+                      // 编辑 front matter 时聚焦到编辑器开始位置
+                      setIsEditing(true);
+                      setTimeout(() => {
+                        textareaRef.current?.focus();
+                        textareaRef.current?.setSelectionRange(0, 0);
+                      }, 0);
+                    }}
+                  />
+                )}
+                
+                {/* 渲染 Markdown 内容 */}
+                <ReactMarkdown 
+                  components={{
+                    // 自定义组件渲染，为标题添加行号信息
+                    h1: ({node, children, ...props}) => {
+                      const lineNumber = getLineNumberForHeading(localContent, String(children));
+                      return <h1 className="md-h1" data-line={lineNumber} {...props}>{children}</h1>;
+                    },
+                    h2: ({node, children, ...props}) => {
+                      const lineNumber = getLineNumberForHeading(localContent, String(children));
+                      return <h2 className="md-h2" data-line={lineNumber} {...props}>{children}</h2>;
+                    },
+                    h3: ({node, children, ...props}) => {
+                      const lineNumber = getLineNumberForHeading(localContent, String(children));
+                      return <h3 className="md-h3" data-line={lineNumber} {...props}>{children}</h3>;
+                    },
+                    h4: ({node, children, ...props}) => {
+                      const lineNumber = getLineNumberForHeading(localContent, String(children));
+                      return <h4 className="md-h4" data-line={lineNumber} {...props}>{children}</h4>;
+                    },
+                    h5: ({node, children, ...props}) => {
+                      const lineNumber = getLineNumberForHeading(localContent, String(children));
+                      return <h5 className="md-h5" data-line={lineNumber} {...props}>{children}</h5>;
+                    },
+                    h6: ({node, children, ...props}) => {
+                      const lineNumber = getLineNumberForHeading(localContent, String(children));
+                      return <h6 className="md-h6" data-line={lineNumber} {...props}>{children}</h6>;
+                    },
+                    p: ({node, ...props}) => <p className="md-p" {...props} />,
+                    blockquote: ({node, ...props}) => <blockquote className="md-blockquote" {...props} />,
+                    code: ({node, className, children, ...props}) => {
+                      const isInline = !className?.includes('language-');
+                      return isInline ? 
+                        <code className="md-code-inline" {...props}>{children}</code> : 
+                        <code className="md-code-block" {...props}>{children}</code>;
+                    },
+                    pre: ({node, ...props}) => <pre className="md-pre" {...props} />,
+                    ul: ({node, ...props}) => <ul className="md-ul" {...props} />,
+                    ol: ({node, ...props}) => <ol className="md-ol" {...props} />,
+                    li: ({node, ...props}) => <li className="md-li" {...props} />,
+                    table: ({node, ...props}) => <table className="md-table" {...props} />,
+                    th: ({node, ...props}) => <th className="md-th" {...props} />,
+                    td: ({node, ...props}) => <td className="md-td" {...props} />,
+                  }}
+                >
+                  {markdown}
+                </ReactMarkdown>
+              </>
+            );
+          })() : (
             <div className="editor-placeholder">
               {placeholder}
             </div>
