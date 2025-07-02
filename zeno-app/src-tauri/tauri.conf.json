@@ -12,15 +12,23 @@
   "app": {
     "windows": [
       {
-        "title": "zeno-app",
-        "width": 800,
-        "height": 600
+        "title": "Zeno - Knowledge Management",
+        "width": 1400,
+        "height": 900,
+        "minWidth": 1000,
+        "minHeight": 700,
+        "center": true,
+        "resizable": true,
+        "maximizable": true,
+        "minimizable": true,
+        "closable": true
       }
     ],
     "security": {
       "csp": null
     }
   },
+  "plugins": {},
   "bundle": {
     "active": true,
     "targets": "all",

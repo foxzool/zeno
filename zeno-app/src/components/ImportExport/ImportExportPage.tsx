@@ -212,20 +212,27 @@ const ImportExportPage: React.FC = () => {
 
   const selectImportSource = async () => {
     try {
+      console.log('Opening file dialog for import source...');
       const selected = await open({
         directory: true,
         multiple: false,
         title: '选择导入源目录',
       });
 
+      console.log('File dialog result:', selected);
+
       if (selected && typeof selected === 'string' && importConfig) {
+        console.log('Setting import source path:', selected);
         setImportConfig({
           ...importConfig,
           source_path: selected
         });
+      } else {
+        console.log('No file selected or invalid selection');
       }
     } catch (error) {
       console.error('Failed to select import source:', error);
+      alert(`选择导入源失败: ${error}`);
     }
   };
 
